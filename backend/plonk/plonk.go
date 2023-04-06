@@ -27,38 +27,12 @@ import (
 	"github.com/consensys/gnark/backend"
 	"github.com/consensys/gnark/constraint"
 
-	"github.com/consensys/gnark/backend/witness"
-	cs_bls12377 "github.com/consensys/gnark/constraint/bls12-377"
-	cs_bls12381 "github.com/consensys/gnark/constraint/bls12-381"
-	cs_bls24315 "github.com/consensys/gnark/constraint/bls24-315"
-	cs_bls24317 "github.com/consensys/gnark/constraint/bls24-317"
-	cs_bn254 "github.com/consensys/gnark/constraint/bn254"
-	cs_bw6633 "github.com/consensys/gnark/constraint/bw6-633"
-	cs_bw6761 "github.com/consensys/gnark/constraint/bw6-761"
-
-	plonk_bls12377 "github.com/consensys/gnark/backend/plonk/bls12-377"
-	plonk_bls12381 "github.com/consensys/gnark/backend/plonk/bls12-381"
-	plonk_bls24315 "github.com/consensys/gnark/backend/plonk/bls24-315"
-	plonk_bls24317 "github.com/consensys/gnark/backend/plonk/bls24-317"
-	plonk_bn254 "github.com/consensys/gnark/backend/plonk/bn254"
-	plonk_bw6633 "github.com/consensys/gnark/backend/plonk/bw6-633"
-	plonk_bw6761 "github.com/consensys/gnark/backend/plonk/bw6-761"
-
-	fr_bls12377 "github.com/consensys/gnark-crypto/ecc/bls12-377/fr"
-	fr_bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
-	fr_bls24315 "github.com/consensys/gnark-crypto/ecc/bls24-315/fr"
-	fr_bls24317 "github.com/consensys/gnark-crypto/ecc/bls24-317/fr"
 	fr_bn254 "github.com/consensys/gnark-crypto/ecc/bn254/fr"
-	fr_bw6633 "github.com/consensys/gnark-crypto/ecc/bw6-633/fr"
-	fr_bw6761 "github.com/consensys/gnark-crypto/ecc/bw6-761/fr"
+	plonk_bn254 "github.com/consensys/gnark/backend/plonk/bn254"
+	"github.com/consensys/gnark/backend/witness"
+	cs_bn254 "github.com/consensys/gnark/constraint/bn254"
 
-	kzg_bls12377 "github.com/consensys/gnark-crypto/ecc/bls12-377/fr/kzg"
-	kzg_bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381/fr/kzg"
-	kzg_bls24315 "github.com/consensys/gnark-crypto/ecc/bls24-315/fr/kzg"
-	kzg_bls24317 "github.com/consensys/gnark-crypto/ecc/bls24-317/fr/kzg"
 	kzg_bn254 "github.com/consensys/gnark-crypto/ecc/bn254/fr/kzg"
-	kzg_bw6633 "github.com/consensys/gnark-crypto/ecc/bw6-633/fr/kzg"
-	kzg_bw6761 "github.com/consensys/gnark-crypto/ecc/bw6-761/fr/kzg"
 
 	gnarkio "github.com/consensys/gnark/io"
 )
@@ -99,18 +73,6 @@ func Setup(ccs constraint.ConstraintSystem, kzgSRS kzg.SRS) (ProvingKey, Verifyi
 	switch tccs := ccs.(type) {
 	case *cs_bn254.SparseR1CS:
 		return plonk_bn254.Setup(tccs, kzgSRS.(*kzg_bn254.SRS))
-	case *cs_bls12381.SparseR1CS:
-		return plonk_bls12381.Setup(tccs, kzgSRS.(*kzg_bls12381.SRS))
-	case *cs_bls12377.SparseR1CS:
-		return plonk_bls12377.Setup(tccs, kzgSRS.(*kzg_bls12377.SRS))
-	case *cs_bw6761.SparseR1CS:
-		return plonk_bw6761.Setup(tccs, kzgSRS.(*kzg_bw6761.SRS))
-	case *cs_bls24317.SparseR1CS:
-		return plonk_bls24317.Setup(tccs, kzgSRS.(*kzg_bls24317.SRS))
-	case *cs_bls24315.SparseR1CS:
-		return plonk_bls24315.Setup(tccs, kzgSRS.(*kzg_bls24315.SRS))
-	case *cs_bw6633.SparseR1CS:
-		return plonk_bw6633.Setup(tccs, kzgSRS.(*kzg_bw6633.SRS))
 	default:
 		panic("unrecognized SparseR1CS curve type")
 	}
@@ -128,25 +90,6 @@ func Prove(ccs constraint.ConstraintSystem, pk ProvingKey, fullWitness witness.W
 	switch tccs := ccs.(type) {
 	case *cs_bn254.SparseR1CS:
 		return plonk_bn254.Prove(tccs, pk.(*plonk_bn254.ProvingKey), fullWitness, opts...)
-
-	case *cs_bls12381.SparseR1CS:
-		return plonk_bls12381.Prove(tccs, pk.(*plonk_bls12381.ProvingKey), fullWitness, opts...)
-
-	case *cs_bls12377.SparseR1CS:
-		return plonk_bls12377.Prove(tccs, pk.(*plonk_bls12377.ProvingKey), fullWitness, opts...)
-
-	case *cs_bw6761.SparseR1CS:
-		return plonk_bw6761.Prove(tccs, pk.(*plonk_bw6761.ProvingKey), fullWitness, opts...)
-
-	case *cs_bw6633.SparseR1CS:
-		return plonk_bw6633.Prove(tccs, pk.(*plonk_bw6633.ProvingKey), fullWitness, opts...)
-
-	case *cs_bls24317.SparseR1CS:
-		return plonk_bls24317.Prove(tccs, pk.(*plonk_bls24317.ProvingKey), fullWitness, opts...)
-
-	case *cs_bls24315.SparseR1CS:
-		return plonk_bls24315.Prove(tccs, pk.(*plonk_bls24315.ProvingKey), fullWitness, opts...)
-
 	default:
 		panic("unrecognized SparseR1CS curve type")
 	}
@@ -164,48 +107,6 @@ func Verify(proof Proof, vk VerifyingKey, publicWitness witness.Witness) error {
 		}
 		return plonk_bn254.Verify(_proof, vk.(*plonk_bn254.VerifyingKey), w)
 
-	case *plonk_bls12381.Proof:
-		w, ok := publicWitness.Vector().(fr_bls12381.Vector)
-		if !ok {
-			return witness.ErrInvalidWitness
-		}
-		return plonk_bls12381.Verify(_proof, vk.(*plonk_bls12381.VerifyingKey), w)
-
-	case *plonk_bls12377.Proof:
-		w, ok := publicWitness.Vector().(fr_bls12377.Vector)
-		if !ok {
-			return witness.ErrInvalidWitness
-		}
-		return plonk_bls12377.Verify(_proof, vk.(*plonk_bls12377.VerifyingKey), w)
-
-	case *plonk_bw6761.Proof:
-		w, ok := publicWitness.Vector().(fr_bw6761.Vector)
-		if !ok {
-			return witness.ErrInvalidWitness
-		}
-		return plonk_bw6761.Verify(_proof, vk.(*plonk_bw6761.VerifyingKey), w)
-
-	case *plonk_bw6633.Proof:
-		w, ok := publicWitness.Vector().(fr_bw6633.Vector)
-		if !ok {
-			return witness.ErrInvalidWitness
-		}
-		return plonk_bw6633.Verify(_proof, vk.(*plonk_bw6633.VerifyingKey), w)
-
-	case *plonk_bls24317.Proof:
-		w, ok := publicWitness.Vector().(fr_bls24317.Vector)
-		if !ok {
-			return witness.ErrInvalidWitness
-		}
-		return plonk_bls24317.Verify(_proof, vk.(*plonk_bls24317.VerifyingKey), w)
-
-	case *plonk_bls24315.Proof:
-		w, ok := publicWitness.Vector().(fr_bls24315.Vector)
-		if !ok {
-			return witness.ErrInvalidWitness
-		}
-		return plonk_bls24315.Verify(_proof, vk.(*plonk_bls24315.VerifyingKey), w)
-
 	default:
 		panic("unrecognized proof type")
 	}
@@ -218,18 +119,6 @@ func NewCS(curveID ecc.ID) constraint.ConstraintSystem {
 	switch curveID {
 	case ecc.BN254:
 		r1cs = &cs_bn254.SparseR1CS{}
-	case ecc.BLS12_377:
-		r1cs = &cs_bls12377.SparseR1CS{}
-	case ecc.BLS12_381:
-		r1cs = &cs_bls12381.SparseR1CS{}
-	case ecc.BW6_761:
-		r1cs = &cs_bw6761.SparseR1CS{}
-	case ecc.BLS24_317:
-		r1cs = &cs_bls24317.SparseR1CS{}
-	case ecc.BLS24_315:
-		r1cs = &cs_bls24315.SparseR1CS{}
-	case ecc.BW6_633:
-		r1cs = &cs_bw6633.SparseR1CS{}
 	default:
 		panic("not implemented")
 	}
@@ -243,18 +132,6 @@ func NewProvingKey(curveID ecc.ID) ProvingKey {
 	switch curveID {
 	case ecc.BN254:
 		pk = &plonk_bn254.ProvingKey{}
-	case ecc.BLS12_377:
-		pk = &plonk_bls12377.ProvingKey{}
-	case ecc.BLS12_381:
-		pk = &plonk_bls12381.ProvingKey{}
-	case ecc.BW6_761:
-		pk = &plonk_bw6761.ProvingKey{}
-	case ecc.BLS24_317:
-		pk = &plonk_bls24317.ProvingKey{}
-	case ecc.BLS24_315:
-		pk = &plonk_bls24315.ProvingKey{}
-	case ecc.BW6_633:
-		pk = &plonk_bw6633.ProvingKey{}
 	default:
 		panic("not implemented")
 	}
@@ -269,18 +146,6 @@ func NewProof(curveID ecc.ID) Proof {
 	switch curveID {
 	case ecc.BN254:
 		proof = &plonk_bn254.Proof{}
-	case ecc.BLS12_377:
-		proof = &plonk_bls12377.Proof{}
-	case ecc.BLS12_381:
-		proof = &plonk_bls12381.Proof{}
-	case ecc.BW6_761:
-		proof = &plonk_bw6761.Proof{}
-	case ecc.BLS24_317:
-		proof = &plonk_bls24317.Proof{}
-	case ecc.BLS24_315:
-		proof = &plonk_bls24315.Proof{}
-	case ecc.BW6_633:
-		proof = &plonk_bw6633.Proof{}
 	default:
 		panic("not implemented")
 	}
@@ -295,18 +160,6 @@ func NewVerifyingKey(curveID ecc.ID) VerifyingKey {
 	switch curveID {
 	case ecc.BN254:
 		vk = &plonk_bn254.VerifyingKey{}
-	case ecc.BLS12_377:
-		vk = &plonk_bls12377.VerifyingKey{}
-	case ecc.BLS12_381:
-		vk = &plonk_bls12381.VerifyingKey{}
-	case ecc.BW6_761:
-		vk = &plonk_bw6761.VerifyingKey{}
-	case ecc.BLS24_317:
-		vk = &plonk_bls24317.VerifyingKey{}
-	case ecc.BLS24_315:
-		vk = &plonk_bls24315.VerifyingKey{}
-	case ecc.BW6_633:
-		vk = &plonk_bw6633.VerifyingKey{}
 	default:
 		panic("not implemented")
 	}

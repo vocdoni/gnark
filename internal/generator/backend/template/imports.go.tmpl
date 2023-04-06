@@ -18,6 +18,12 @@
 	{{- end}}
 {{- end }}
 
+{{- define "groth16_import_curve" }}
+	groth16_{{toLower .CurveImportName}} "github.com/consensys/gnark/backend/groth16/{{toLower .Curve}}"
+	cs_{{toLower .CurveImportName}} "github.com/consensys/gnark/constraint/{{toLower .Curve}}"
+	fr_{{toLower .CurveImportName}} "github.com/consensys/gnark-crypto/ecc/{{toLower .Curve}}/fr"
+{{- end }}
+
 {{- define "import_backend_cs" }}
 	{{- if eq .Curve "tinyfield"}}
 	"github.com/consensys/gnark/constraint/tinyfield"

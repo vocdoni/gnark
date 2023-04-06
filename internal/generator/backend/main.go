@@ -37,53 +37,60 @@ var (
 
 	curves = map[string]templateData{
 		"bn254": {
-			RootPath: "../../../backend/{?}/bn254/",
-			CSPath:   "../../../constraint/bn254/",
-			Curve:    "BN254",
-			CurveID:  "BN254",
-			include:  true,
+			RootPath:        "../../../backend/{?}/bn254/",
+			CSPath:          "../../../constraint/bn254/",
+			Curve:           "BN254",
+			CurveID:         "BN254",
+			CurveImportName: "bn254",
+			include:         true,
 		},
 		"bls12-377": {
-			RootPath: "../../../backend/{?}/bls12-377/",
-			CSPath:   "../../../constraint/bls12-377/",
-			Curve:    "BLS12-377",
-			CurveID:  "BLS12_377",
-			include:  false,
+			RootPath:        "../../../backend/{?}/bls12-377/",
+			CSPath:          "../../../constraint/bls12-377/",
+			Curve:           "BLS12-377",
+			CurveID:         "BLS12_377",
+			CurveImportName: "bls12377",
+			include:         false,
 		},
 		"bls12-381": {
-			RootPath: "../../../backend/{?}/bls12-381/",
-			CSPath:   "../../../constraint/bls12-381/",
-			Curve:    "BLS12-381",
-			CurveID:  "BLS12_381",
-			include:  false,
+			RootPath:        "../../../backend/{?}/bls12-381/",
+			CSPath:          "../../../constraint/bls12-381/",
+			Curve:           "BLS12-381",
+			CurveID:         "BLS12_381",
+			CurveImportName: "bls12381",
+			include:         false,
 		},
 		"bw6-761": {
-			RootPath: "../../../backend/{?}/bw6-761/",
-			CSPath:   "../../../constraint/bw6-761/",
-			Curve:    "BW6-761",
-			CurveID:  "BW6_761",
-			include:  false,
+			RootPath:        "../../../backend/{?}/bw6-761/",
+			CSPath:          "../../../constraint/bw6-761/",
+			Curve:           "BW6-761",
+			CurveID:         "BW6_761",
+			CurveImportName: "bw6761",
+			include:         false,
 		},
 		"bls24-315": {
-			RootPath: "../../../backend/{?}/bls24-315/",
-			CSPath:   "../../../constraint/bls24-315/",
-			Curve:    "BLS24-315",
-			CurveID:  "BLS24_315",
-			include:  false,
+			RootPath:        "../../../backend/{?}/bls24-315/",
+			CSPath:          "../../../constraint/bls24-315/",
+			Curve:           "BLS24-315",
+			CurveID:         "BLS24_315",
+			CurveImportName: "bls24315",
+			include:         false,
 		},
 		"bls24-317": {
-			RootPath: "../../../backend/{?}/bls24-317/",
-			CSPath:   "../../../constraint/bls24-317/",
-			Curve:    "BLS24-317",
-			CurveID:  "BLS24_317",
-			include:  false,
+			RootPath:        "../../../backend/{?}/bls24-317/",
+			CSPath:          "../../../constraint/bls24-317/",
+			Curve:           "BLS24-317",
+			CurveID:         "BLS24_317",
+			CurveImportName: "bls24317",
+			include:         false,
 		},
 		"bw6-633": {
-			RootPath: "../../../backend/{?}/bw6-633/",
-			CSPath:   "../../../constraint/bw6-633/",
-			Curve:    "BW6-633",
-			CurveID:  "BW6_633",
-			include:  false,
+			RootPath:        "../../../backend/{?}/bw6-633/",
+			CSPath:          "../../../constraint/bw6-633/",
+			Curve:           "BW6-633",
+			CurveID:         "BW6_633",
+			CurveImportName: "bw6633",
+			include:         false,
 		},
 		"tinyfield": {
 			RootPath:  "../../../internal/tinyfield/",
@@ -271,12 +278,14 @@ func main() {
 }
 
 type templateData struct {
-	RootPath  string
-	CSPath    string
-	Curve     string
-	CurveID   string
-	noBackend bool
-	include   bool
+	RootPath          string
+	CSPath            string
+	Curve             string
+	CurveID           string
+	CurveImportName   string
+	CurveImportPrefix string
+	noBackend         bool
+	include           bool
 }
 
 func copyDir(source, dest string) {

@@ -32,13 +32,7 @@ import (
 	"github.com/consensys/gnark/internal/utils"
 	"github.com/consensys/gnark/logger"
 
-	bls12377r1cs "github.com/consensys/gnark/constraint/bls12-377"
-	bls12381r1cs "github.com/consensys/gnark/constraint/bls12-381"
-	bls24315r1cs "github.com/consensys/gnark/constraint/bls24-315"
-	bls24317r1cs "github.com/consensys/gnark/constraint/bls24-317"
 	bn254r1cs "github.com/consensys/gnark/constraint/bn254"
-	bw6633r1cs "github.com/consensys/gnark/constraint/bw6-633"
-	bw6761r1cs "github.com/consensys/gnark/constraint/bw6-761"
 	"github.com/consensys/gnark/constraint/solver"
 	tinyfieldr1cs "github.com/consensys/gnark/constraint/tinyfield"
 )
@@ -81,20 +75,8 @@ func newBuilder(field *big.Int, config frontend.CompileConfig) *builder {
 	curve := utils.FieldToCurve(field)
 
 	switch curve {
-	case ecc.BLS12_377:
-		b.cs = bls12377r1cs.NewSparseR1CS(config.Capacity)
-	case ecc.BLS12_381:
-		b.cs = bls12381r1cs.NewSparseR1CS(config.Capacity)
 	case ecc.BN254:
 		b.cs = bn254r1cs.NewSparseR1CS(config.Capacity)
-	case ecc.BW6_761:
-		b.cs = bw6761r1cs.NewSparseR1CS(config.Capacity)
-	case ecc.BW6_633:
-		b.cs = bw6633r1cs.NewSparseR1CS(config.Capacity)
-	case ecc.BLS24_315:
-		b.cs = bls24315r1cs.NewSparseR1CS(config.Capacity)
-	case ecc.BLS24_317:
-		b.cs = bls24317r1cs.NewSparseR1CS(config.Capacity)
 	default:
 		if field.Cmp(tinyfield.Modulus()) == 0 {
 			b.cs = tinyfieldr1cs.NewSparseR1CS(config.Capacity)
