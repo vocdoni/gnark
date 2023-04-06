@@ -17,9 +17,9 @@
 package cs
 
 import (
+	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/fxamacker/cbor/v2"
 	"io"
 	"runtime"
 	"sync"
@@ -426,42 +426,31 @@ func (cs *R1CS) CurveID() ecc.ID {
 	return ecc.BN254
 }
 
-// WriteTo encodes R1CS into provided io.Writer using cbor
+// WriteTo encodes R1CS into provided io.Writer using gob
 func (cs *R1CS) WriteTo(w io.Writer) (int64, error) {
 	_w := ioutils.WriterCounter{W: w} // wraps writer to count the bytes written
-	enc, err := cbor.CoreDetEncOptions().EncMode()
-	if err != nil {
-		return 0, err
-	}
-	encoder := enc.NewEncoder(&_w)
 
 	// encode our object
-	err = encoder.Encode(cs)
-	return _w.N, err
+	encoder := gob.NewEncoder(&_w)
+
+	return _w.N, encoder.Encode(cs)
 }
 
-// ReadFrom attempts to decode R1CS from io.Reader using cbor
+// ReadFrom attempts to decode R1CS from io.Reader using gob
 func (cs *R1CS) ReadFrom(r io.Reader) (int64, error) {
-	dm, err := cbor.DecOptions{
-		MaxArrayElements: 134217728,
-		MaxMapPairs:      134217728,
-	}.DecMode()
-
-	if err != nil {
-		return 0, err
-	}
-	decoder := dm.NewDecoder(r)
+	_r := ioutils.ReaderCounter{R: r} // wraps reader to count the bytes written
+	decoder := gob.NewDecoder(&_r)
 
 	// initialize coeff table
 	cs.CoeffTable = newCoeffTable(0)
 
-	if err := decoder.Decode(&cs); err != nil {
-		return int64(decoder.NumBytesRead()), err
+	if err := decoder.Decode(cs); err != nil {
+		return _r.N, err
 	}
 
 	if err := cs.CheckSerializationHeader(); err != nil {
-		return int64(decoder.NumBytesRead()), err
+		return _r.N, err
 	}
 
-	return int64(decoder.NumBytesRead()), nil
+	return _r.N, nil
 }
