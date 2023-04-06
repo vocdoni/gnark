@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,93 +14,100 @@ import (
 	"github.com/consensys/gnark-crypto/field/generator/config"
 )
 
-const copyrightHolder = "ConsenSys Software Inc."
+const (
+	copyrightHolder = "ConsenSys Software Inc."
+	importCurve     = "../imports.go.tmpl"
+)
 
-var bgen = bavard.NewBatchGenerator(copyrightHolder, 2020, "gnark")
+var (
+	bgen = bavard.NewBatchGenerator(copyrightHolder, 2020, "gnark")
+
+	includedCurves = []string{
+		"bn254",
+		"bls12-377",
+		"bls12-381",
+		"bw6-761",
+		"bls24-315",
+		"bls24-317",
+		"bw6-633",
+		"tinyfield",
+	}
+
+	extraFilesDest = "../../../backend"
+
+	curves = map[string]templateData{
+		"bn254": {
+			RootPath: "../../../backend/{?}/bn254/",
+			CSPath:   "../../../constraint/bn254/",
+			Curve:    "BN254",
+			CurveID:  "BN254",
+			include:  true,
+		},
+		"bls12-377": {
+			RootPath: "../../../backend/{?}/bls12-377/",
+			CSPath:   "../../../constraint/bls12-377/",
+			Curve:    "BLS12-377",
+			CurveID:  "BLS12_377",
+			include:  true,
+		},
+		"bls12-381": {
+			RootPath: "../../../backend/{?}/bls12-381/",
+			CSPath:   "../../../constraint/bls12-381/",
+			Curve:    "BLS12-381",
+			CurveID:  "BLS12_381",
+			include:  true,
+		},
+		"bw6-761": {
+			RootPath: "../../../backend/{?}/bw6-761/",
+			CSPath:   "../../../constraint/bw6-761/",
+			Curve:    "BW6-761",
+			CurveID:  "BW6_761",
+			include:  true,
+		},
+		"bls24-315": {
+			RootPath: "../../../backend/{?}/bls24-315/",
+			CSPath:   "../../../constraint/bls24-315/",
+			Curve:    "BLS24-315",
+			CurveID:  "BLS24_315",
+			include:  true,
+		},
+		"bls24-317": {
+			RootPath: "../../../backend/{?}/bls24-317/",
+			CSPath:   "../../../constraint/bls24-317/",
+			Curve:    "BLS24-317",
+			CurveID:  "BLS24_317",
+			include:  true,
+		},
+		"bw6-633": {
+			RootPath: "../../../backend/{?}/bw6-633/",
+			CSPath:   "../../../constraint/bw6-633/",
+			Curve:    "BW6-633",
+			CurveID:  "BW6_633",
+			include:  true,
+		},
+		"tinyfield": {
+			RootPath:  "../../../internal/tinyfield/",
+			CSPath:    "../../../constraint/tinyfield",
+			Curve:     "tinyfield",
+			CurveID:   "UNKNOWN",
+			noBackend: true,
+			include:   true,
+		},
+	}
+)
 
 //go:generate go run main.go
 func main() {
 
-	bls12_377 := templateData{
-		RootPath: "../../../backend/{?}/bls12-377/",
-		CSPath:   "../../../constraint/bls12-377/",
-		Curve:    "BLS12-377",
-		CurveID:  "BLS12_377",
-	}
-	bls12_381 := templateData{
-		RootPath: "../../../backend/{?}/bls12-381/",
-		CSPath:   "../../../constraint/bls12-381/",
-		Curve:    "BLS12-381",
-		CurveID:  "BLS12_381",
-	}
-	bn254 := templateData{
-		RootPath: "../../../backend/{?}/bn254/",
-		CSPath:   "../../../constraint/bn254/",
-		Curve:    "BN254",
-		CurveID:  "BN254",
-	}
-	bw6_761 := templateData{
-		RootPath: "../../../backend/{?}/bw6-761/",
-		CSPath:   "../../../constraint/bw6-761/",
-		Curve:    "BW6-761",
-		CurveID:  "BW6_761",
-	}
-	bls24_315 := templateData{
-		RootPath: "../../../backend/{?}/bls24-315/",
-		CSPath:   "../../../constraint/bls24-315/",
-		Curve:    "BLS24-315",
-		CurveID:  "BLS24_315",
-	}
-	bls24_317 := templateData{
-		RootPath: "../../../backend/{?}/bls24-317/",
-		CSPath:   "../../../constraint/bls24-317/",
-		Curve:    "BLS24-317",
-		CurveID:  "BLS24_317",
-	}
-	bw6_633 := templateData{
-		RootPath: "../../../backend/{?}/bw6-633/",
-		CSPath:   "../../../constraint/bw6-633/",
-		Curve:    "BW6-633",
-		CurveID:  "BW6_633",
-	}
-	tiny_field := templateData{
-		RootPath:  "../../../internal/tinyfield/",
-		CSPath:    "../../../constraint/tinyfield",
-		Curve:     "tinyfield",
-		CurveID:   "UNKNOWN",
-		noBackend: true,
-	}
-
-	// autogenerate tinyfield
-	tinyfieldConf, err := config.NewFieldConfig("tinyfield", "Element", "0x2f", false)
-	if err != nil {
-		panic(err)
-	}
-	if err := generator.GenerateFF(tinyfieldConf, tiny_field.RootPath); err != nil {
-		panic(err)
-	}
-
-	datas := []templateData{
-		bls12_377,
-		bls12_381,
-		bn254,
-		bw6_761,
-		bls24_315,
-		bls24_317,
-		bw6_633,
-		tiny_field,
-	}
-
-	const importCurve = "../imports.go.tmpl"
-
 	var wg sync.WaitGroup
 
-	for _, d := range datas {
+	for _, d := range curves {
 
 		wg.Add(1)
 
 		go func(d templateData) {
 			defer wg.Done()
+			fmt.Println("Auto generate", d.Curve, "on root", d.RootPath)
 
 			var (
 				groth16Dir         = strings.Replace(d.RootPath, "{?}", "groth16", 1)
@@ -106,7 +115,18 @@ func main() {
 				plonkDir           = strings.Replace(d.RootPath, "{?}", "plonk", 1)
 				plonkFriDir        = strings.Replace(d.RootPath, "{?}", "plonkfri", 1)
 			)
+			// clean
+			os.RemoveAll(groth16Dir)
+			os.RemoveAll(plonkDir)
+			os.RemoveAll(plonkFriDir)
+			os.RemoveAll(d.CSPath)
 
+			// skip if not included
+			if !d.include {
+				return
+			}
+
+			// create directories
 			if err := os.MkdirAll(groth16Dir, 0700); err != nil {
 				panic(err)
 			}
@@ -210,12 +230,25 @@ func main() {
 			}
 
 		}(d)
+	}
 
+	// autogenerate tinyfield
+	tinyfieldConf, err := config.NewFieldConfig("tinyfield", "Element", "0x2f", false)
+	if err != nil {
+		panic(err)
+	}
+	if err := generator.GenerateFF(tinyfieldConf, curves["tinyfield"].RootPath); err != nil {
+		panic(err)
 	}
 
 	wg.Add(1)
 	go func() {
-		if err = bgen.Generate(datas, "constant", "./template/representations/",
+		var curvesSlice []templateData
+		for _, d := range curves {
+			curvesSlice = append(curvesSlice, d)
+		}
+
+		if err = bgen.Generate(curvesSlice, "constant", "./template/representations/",
 			bavard.Entry{File: filepath.Join("../../../constant", "constant.go"), Templates: []string{"constant.go.tmpl"}}); err != nil {
 			panic(err)
 		}
@@ -232,6 +265,9 @@ func main() {
 		panic(err)
 	}
 
+	// copy extra files
+	copyDir("./extra_files", extraFilesDest)
+
 }
 
 type templateData struct {
@@ -240,4 +276,24 @@ type templateData struct {
 	Curve     string
 	CurveID   string
 	noBackend bool
+	include   bool
+}
+
+func copyDir(source, dest string) {
+	fmt.Println("copying", source, "to", dest)
+	entries, err := ioutil.ReadDir(source)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, entry := range entries {
+		srcPath := filepath.Join(source, entry.Name())
+		//destPath := filepath.Join(extraFilesDest, entry.Name())
+		cmd := exec.Command("cp", "-r", srcPath, dest)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			panic(err)
+		}
+	}
 }
