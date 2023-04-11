@@ -15,7 +15,9 @@
 // Package backend implements Zero Knowledge Proof systems: it consumes circuit compiled with gnark/frontend.
 package backend
 
-import "github.com/consensys/gnark/constraint/solver"
+import (
+	"github.com/consensys/gnark/constraint/solver"
+)
 
 // ID represent a unique ID for a proving scheme
 type ID uint16

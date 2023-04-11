@@ -19,6 +19,7 @@ package groth16
 import (
 	curve "github.com/consensys/gnark-crypto/ecc/bn254"
 	"io"
+	"fmt"
 )
 
 // WriteTo writes binary encoding of the Proof elements to writer
@@ -252,7 +253,7 @@ func (pk *ProvingKey) readFrom(r io.Reader, decOptions ...func(*curve.Decoder)) 
 	if err != nil {
 		return n, err
 	}
-
+	fmt.Println("reading proving key")
 	dec := curve.NewDecoder(r, decOptions...)
 
 	var nbWires uint64
@@ -273,7 +274,8 @@ func (pk *ProvingKey) readFrom(r io.Reader, decOptions ...func(*curve.Decoder)) 
 		&pk.NbInfinityB,
 	}
 
-	for _, v := range toDecode {
+	for i, v := range toDecode {
+		fmt.Println("decoding", fmt.Sprintf("%d/%d", i, len(toDecode)), fmt.Sprintf("%T", v))
 		if err := dec.Decode(v); err != nil {
 			return n + dec.BytesRead(), err
 		}
@@ -281,9 +283,11 @@ func (pk *ProvingKey) readFrom(r io.Reader, decOptions ...func(*curve.Decoder)) 
 	pk.InfinityA = make([]bool, nbWires)
 	pk.InfinityB = make([]bool, nbWires)
 
+	fmt.Println("decoding infinityA")
 	if err := dec.Decode(&pk.InfinityA); err != nil {
 		return n + dec.BytesRead(), err
 	}
+	fmt.Println("decoding infinityB")
 	if err := dec.Decode(&pk.InfinityB); err != nil {
 		return n + dec.BytesRead(), err
 	}

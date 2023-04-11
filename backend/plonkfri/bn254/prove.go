@@ -20,7 +20,6 @@ import (
 	"crypto/sha256"
 	"math/big"
 	"math/bits"
-	"runtime"
 
 	"github.com/consensys/gnark/backend/witness"
 
@@ -436,7 +435,7 @@ func fftBigCosetWOBitReverse(poly []fr.Element, domainBig *fft.Domain) []fr.Elem
 		for i := start; i < end; i++ {
 			res[i].Mul(&poly[i], &domainBig.CosetTable[i])
 		}
-	}, runtime.NumCPU()/2)
+	})
 	domainBig.FFT(res, fft.DIF)
 	return res
 }

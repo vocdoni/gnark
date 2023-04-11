@@ -6,7 +6,7 @@ import (
 )
 
 // Parallelize process in parallel the work function
-func Parallelize(nbIterations int, work func(int, int), maxCpus ...int) {
+func Parallelize1(nbIterations int, work func(int, int), maxCpus ...int) {
 
 	nbTasks := runtime.NumCPU()
 	if len(maxCpus) == 1 {
@@ -41,4 +41,8 @@ func Parallelize(nbIterations int, work func(int, int), maxCpus ...int) {
 	}
 
 	wg.Wait()
+}
+
+func Parallelize(nbIterations int, work func(int, int)) {
+	work(0, nbIterations)
 }

@@ -104,6 +104,7 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 	start := time.Now()
 
 	// H (witness reduction / FFT part)
+	log.Debug().Msg("computing H")
 	var h []fr.Element
 	chHDone := make(chan struct{}, 1)
 	go func() {
@@ -157,6 +158,7 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 	_s.BigInt(&s)
 
 	// computes r[δ], s[δ], kr[δ]
+	log.Debug().Msg("computing deltas")
 	deltas := curve.BatchScalarMultiplicationG1(&pk.G1.Delta, []fr.Element{_r, _s, _kr})
 
 	var bs1, ar curve.G1Jac
