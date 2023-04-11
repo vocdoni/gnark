@@ -189,7 +189,7 @@ func (c *commitChecker) getOptimalBasewidth(api frontend.API) int {
 }
 
 func optimalWidth(countFn func(baseLength int, collected []checkedVariable) int, collected []checkedVariable) int {
-	min := math.MaxInt64
+	min := math.MaxInt32
 	minVal := 0
 	for j := 2; j < 18; j++ {
 		current := countFn(j, collected)
