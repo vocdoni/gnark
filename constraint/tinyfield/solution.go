@@ -38,12 +38,12 @@ type solution struct {
 	values, coefficients []fr.Element
 	solved               []bool
 	nbSolved             uint64
-	mHintsFunctions      map[solver.HintID]solver.Hint // maps hintID to hint function
+	mHintsFunctions      map[solver.HintID]solver.HintFn // maps hintID to hint function
 	st                   *debug.SymbolTable
 	cs                   *constraint.System
 }
 
-func newSolution(cs *constraint.System, nbWires int, hintFunctions map[solver.HintID]solver.Hint, coefficients []fr.Element) (solution, error) {
+func newSolution(cs *constraint.System, nbWires int, hintFunctions map[solver.HintID]solver.HintFn, coefficients []fr.Element) (solution, error) {
 
 	s := solution{
 		cs:              cs,
@@ -53,6 +53,7 @@ func newSolution(cs *constraint.System, nbWires int, hintFunctions map[solver.Hi
 		solved:          make([]bool, nbWires),
 		mHintsFunctions: hintFunctions,
 	}
+
 
 	// hintsDependencies is from compile time; it contains the list of hints the solver **needs**
 	var missing []string

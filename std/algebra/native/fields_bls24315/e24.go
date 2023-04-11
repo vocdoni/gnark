@@ -400,13 +400,13 @@ var InverseE24Hint = func(_ *big.Int, inputs []*big.Int, res []*big.Int) error {
 }
 
 func init() {
-	solver.RegisterHint(InverseE24Hint)
+	solver.RegisterHint(solver.NewHint("inverse_e24", InverseE24Hint))
 }
 
 // Inverse e24 elmts
 func (e *E24) Inverse(api frontend.API, e1 E24) *E24 {
 
-	res, err := api.NewHint(InverseE24Hint, 24, e1.D0.C0.B0.A0, e1.D0.C0.B0.A1, e1.D0.C0.B1.A0, e1.D0.C0.B1.A1, e1.D0.C1.B0.A0, e1.D0.C1.B0.A1, e1.D0.C1.B1.A0, e1.D0.C1.B1.A1, e1.D0.C2.B0.A0, e1.D0.C2.B0.A1, e1.D0.C2.B1.A0, e1.D0.C2.B1.A1, e1.D1.C0.B0.A0, e1.D1.C0.B0.A1, e1.D1.C0.B1.A0, e1.D1.C0.B1.A1, e1.D1.C1.B0.A0, e1.D1.C1.B0.A1, e1.D1.C1.B1.A0, e1.D1.C1.B1.A1, e1.D1.C2.B0.A0, e1.D1.C2.B0.A1, e1.D1.C2.B1.A0, e1.D1.C2.B1.A1)
+	res, err := api.NewHint(solver.NewHint("inverse_e24", InverseE24Hint), 24, e1.D0.C0.B0.A0, e1.D0.C0.B0.A1, e1.D0.C0.B1.A0, e1.D0.C0.B1.A1, e1.D0.C1.B0.A0, e1.D0.C1.B0.A1, e1.D0.C1.B1.A0, e1.D0.C1.B1.A1, e1.D0.C2.B0.A0, e1.D0.C2.B0.A1, e1.D0.C2.B1.A0, e1.D0.C2.B1.A1, e1.D1.C0.B0.A0, e1.D1.C0.B0.A1, e1.D1.C0.B1.A0, e1.D1.C0.B1.A1, e1.D1.C1.B0.A0, e1.D1.C1.B0.A1, e1.D1.C1.B1.A0, e1.D1.C1.B1.A1, e1.D1.C2.B0.A0, e1.D1.C2.B0.A1, e1.D1.C2.B1.A0, e1.D1.C2.B1.A1)
 	if err != nil {
 		// err is non-nil only for invalid number of inputs
 		panic(err)
@@ -510,13 +510,22 @@ var DivE24Hint = func(_ *big.Int, inputs []*big.Int, res []*big.Int) error {
 }
 
 func init() {
-	solver.RegisterHint(DivE24Hint)
+	solver.RegisterHint(solver.NewHint("div_e24", DivE24Hint))
 }
 
 // DivUnchecked e24 elmts
 func (e *E24) DivUnchecked(api frontend.API, e1, e2 E24) *E24 {
 
-	res, err := api.NewHint(DivE24Hint, 24, e1.D0.C0.B0.A0, e1.D0.C0.B0.A1, e1.D0.C0.B1.A0, e1.D0.C0.B1.A1, e1.D0.C1.B0.A0, e1.D0.C1.B0.A1, e1.D0.C1.B1.A0, e1.D0.C1.B1.A1, e1.D0.C2.B0.A0, e1.D0.C2.B0.A1, e1.D0.C2.B1.A0, e1.D0.C2.B1.A1, e1.D1.C0.B0.A0, e1.D1.C0.B0.A1, e1.D1.C0.B1.A0, e1.D1.C0.B1.A1, e1.D1.C1.B0.A0, e1.D1.C1.B0.A1, e1.D1.C1.B1.A0, e1.D1.C1.B1.A1, e1.D1.C2.B0.A0, e1.D1.C2.B0.A1, e1.D1.C2.B1.A0, e1.D1.C2.B1.A1, e2.D0.C0.B0.A0, e2.D0.C0.B0.A1, e2.D0.C0.B1.A0, e2.D0.C0.B1.A1, e2.D0.C1.B0.A0, e2.D0.C1.B0.A1, e2.D0.C1.B1.A0, e2.D0.C1.B1.A1, e2.D0.C2.B0.A0, e2.D0.C2.B0.A1, e2.D0.C2.B1.A0, e2.D0.C2.B1.A1, e2.D1.C0.B0.A0, e2.D1.C0.B0.A1, e2.D1.C0.B1.A0, e2.D1.C0.B1.A1, e2.D1.C1.B0.A0, e2.D1.C1.B0.A1, e2.D1.C1.B1.A0, e2.D1.C1.B1.A1, e2.D1.C2.B0.A0, e2.D1.C2.B0.A1, e2.D1.C2.B1.A0, e2.D1.C2.B1.A1)
+	res, err := api.NewHint(solver.NewHint("div_e24", DivE24Hint),
+		24, e1.D0.C0.B0.A0, e1.D0.C0.B0.A1, e1.D0.C0.B1.A0, e1.D0.C0.B1.A1, e1.D0.C1.B0.A0,
+		e1.D0.C1.B0.A1, e1.D0.C1.B1.A0, e1.D0.C1.B1.A1, e1.D0.C2.B0.A0, e1.D0.C2.B0.A1, e1.D0.C2.B1.A0,
+		e1.D0.C2.B1.A1, e1.D1.C0.B0.A0, e1.D1.C0.B0.A1, e1.D1.C0.B1.A0, e1.D1.C0.B1.A1, e1.D1.C1.B0.A0,
+		e1.D1.C1.B0.A1, e1.D1.C1.B1.A0, e1.D1.C1.B1.A1, e1.D1.C2.B0.A0, e1.D1.C2.B0.A1, e1.D1.C2.B1.A0,
+		e1.D1.C2.B1.A1, e2.D0.C0.B0.A0, e2.D0.C0.B0.A1, e2.D0.C0.B1.A0, e2.D0.C0.B1.A1, e2.D0.C1.B0.A0,
+		e2.D0.C1.B0.A1, e2.D0.C1.B1.A0, e2.D0.C1.B1.A1, e2.D0.C2.B0.A0, e2.D0.C2.B0.A1, e2.D0.C2.B1.A0,
+		e2.D0.C2.B1.A1, e2.D1.C0.B0.A0, e2.D1.C0.B0.A1, e2.D1.C0.B1.A0, e2.D1.C0.B1.A1, e2.D1.C1.B0.A0,
+		e2.D1.C1.B0.A1, e2.D1.C1.B1.A0, e2.D1.C1.B1.A1, e2.D1.C2.B0.A0, e2.D1.C2.B0.A1, e2.D1.C2.B1.A0,
+		e2.D1.C2.B1.A1)
 	if err != nil {
 		// err is non-nil only for invalid number of inputs
 		panic(err)

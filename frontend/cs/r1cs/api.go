@@ -546,7 +546,7 @@ func (builder *builder) IsZero(i1 frontend.Variable) frontend.Variable {
 	m := builder.newInternalVariable()
 
 	// x = 1/a 				// in a hint (x == 0 if a == 0)
-	x, err := builder.NewHint(solver.InvZeroHint, 1, a)
+	x, err := builder.NewHint(solver.NewHint("inv_zero", solver.InvZeroHint), 1, a)
 	if err != nil {
 		// the function errs only if the number of inputs is invalid.
 		panic(err)
@@ -729,12 +729,12 @@ func (builder *builder) Commit(v ...frontend.Variable) (frontend.Variable, error
 
 	// hint is used at solving time to compute the actual value of the commitment
 	// it is going to be dynamically replaced at solving time.
-	hintOut, err := builder.NewHint(bsb22CommitmentComputePlaceholder, 1, builder.getCommittedVariables(&commitment)...)
+	hintOut, err := builder.NewHint(solver.NewHint("bsb22_compute_placeholder", bsb22CommitmentComputePlaceholder), 1, builder.getCommittedVariables(&commitment)...)
 	if err != nil {
 		return nil, err
 	}
 	cVar := hintOut[0]
-	commitment.HintID = solver.GetHintID(bsb22CommitmentComputePlaceholder) // TODO @gbotrel probably not needed
+	commitment.HintID = solver.GetHintID("bsb22_compute_placeholder") // TODO @gbotrel probably not needed
 
 	commitment.CommitmentIndex = (cVar.(expr.LinearExpression))[0].WireID()
 
@@ -771,5 +771,5 @@ func bsb22CommitmentComputePlaceholder(_ *big.Int, _ []*big.Int, output []*big.I
 }
 
 func init() {
-	solver.RegisterHint(bsb22CommitmentComputePlaceholder)
+	solver.RegisterHint(solver.NewHint("bsb22_compute_placeholder", bsb22CommitmentComputePlaceholder))
 }

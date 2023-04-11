@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	"github.com/consensys/gnark"
+	"github.com/consensys/gnark/constraint/solver"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/std/math/bits"
 )
@@ -14,7 +15,7 @@ type hintCircuit struct {
 }
 
 func (circuit *hintCircuit) Define(api frontend.API) error {
-	res, err := api.Compiler().NewHint(mulBy7, 1, circuit.A)
+	res, err := api.Compiler().NewHint(solver.NewHint("mul_by_7", mulBy7), 1, circuit.A)
 	if err != nil {
 		return fmt.Errorf("mulBy7: %w", err)
 	}
@@ -23,7 +24,7 @@ func (circuit *hintCircuit) Define(api frontend.API) error {
 
 	api.AssertIsEqual(a7, _a7)
 	api.AssertIsEqual(a7, circuit.B)
-	res, err = api.Compiler().NewHint(make3, 1)
+	res, err = api.Compiler().NewHint(solver.NewHint("make_3", make3), 1)
 	if err != nil {
 		return fmt.Errorf("make3: %w", err)
 	}
@@ -40,7 +41,7 @@ type vectorDoubleCircuit struct {
 }
 
 func (c *vectorDoubleCircuit) Define(api frontend.API) error {
-	res, err := api.Compiler().NewHint(dvHint, len(c.B), c.A...)
+	res, err := api.Compiler().NewHint(solver.NewHint("dv", dvHint), len(c.B), c.A...)
 	if err != nil {
 		return fmt.Errorf("double newhint: %w", err)
 	}
@@ -60,7 +61,7 @@ type recursiveHint struct {
 
 func (circuit *recursiveHint) Define(api frontend.API) error {
 	// first hint produces wire w1
-	w1, _ := api.Compiler().NewHint(make3, 1)
+	w1, _ := api.Compiler().NewHint(solver.NewHint("make_3", make3), 1)
 
 	// this linear expression is not recorded in a R1CS just yet
 	linearExpression := api.Add(circuit.A, w1[0])
@@ -91,7 +92,8 @@ func init() {
 			},
 		}
 
-		addNewEntry("recursive_hint", &recursiveHint{}, good, bad, gnark.Curves(), make3, bits.NBits)
+		addNewEntry("recursive_hint", &recursiveHint{}, good, bad, gnark.Curves(),
+			solver.NewHint("make_3", make3), solver.NewHint("n_bits", bits.NBits))
 	}
 
 	{
@@ -109,7 +111,8 @@ func init() {
 			},
 		}
 
-		addNewEntry("hint", &hintCircuit{}, good, bad, gnark.Curves(), mulBy7, make3)
+		addNewEntry("hint", &hintCircuit{}, good, bad, gnark.Curves(),
+			solver.NewHint("mul_by_7", mulBy7), solver.NewHint("make_3", make3))
 	}
 
 	{
@@ -134,7 +137,10 @@ func init() {
 				},
 			},
 		}
-		addNewEntry("multi-output-hint", &vectorDoubleCircuit{A: make([]frontend.Variable, 8), B: make([]frontend.Variable, 8)}, good, bad, gnark.Curves(), dvHint)
+		addNewEntry("multi-output-hint", &vectorDoubleCircuit{
+			A: make([]frontend.Variable, 8),
+			B: make([]frontend.Variable, 8)},
+			good, bad, gnark.Curves(), solver.NewHint("dv", dvHint))
 	}
 }
 

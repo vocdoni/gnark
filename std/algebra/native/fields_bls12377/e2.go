@@ -155,13 +155,13 @@ var InverseE2Hint = func(_ *big.Int, inputs []*big.Int, res []*big.Int) error {
 }
 
 func init() {
-	solver.RegisterHint(InverseE2Hint)
+	solver.RegisterHint(solver.NewHint("inverse_e2", InverseE2Hint))
 }
 
 // Inverse e2 elmts
 func (e *E2) Inverse(api frontend.API, e1 E2) *E2 {
 
-	res, err := api.NewHint(InverseE2Hint, 2, e1.A0, e1.A1)
+	res, err := api.NewHint(solver.NewHint("inverse_e2", InverseE2Hint), 2, e1.A0, e1.A1)
 	if err != nil {
 		// err is non-nil only for invalid number of inputs
 		panic(err)
@@ -197,13 +197,13 @@ var DivE2Hint = func(_ *big.Int, inputs []*big.Int, res []*big.Int) error {
 }
 
 func init() {
-	solver.RegisterHint(DivE2Hint)
+	solver.RegisterHint(solver.NewHint("div_e2", DivE2Hint))
 }
 
 // DivUnchecked e2 elmts
 func (e *E2) DivUnchecked(api frontend.API, e1, e2 E2) *E2 {
 
-	res, err := api.NewHint(DivE2Hint, 2, e1.A0, e1.A1, e2.A0, e2.A1)
+	res, err := api.NewHint(solver.NewHint("div_e2", DivE2Hint), 2, e1.A0, e1.A1, e2.A0, e2.A1)
 	if err != nil {
 		// err is non-nil only for invalid number of inputs
 		panic(err)

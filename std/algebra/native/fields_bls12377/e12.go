@@ -420,13 +420,13 @@ var InverseE12Hint = func(_ *big.Int, inputs []*big.Int, res []*big.Int) error {
 }
 
 func init() {
-	solver.RegisterHint(InverseE12Hint)
+	solver.RegisterHint(solver.NewHint("inverse_e12", InverseE12Hint))
 }
 
 // Inverse e12 elmts
 func (e *E12) Inverse(api frontend.API, e1 E12) *E12 {
 
-	res, err := api.NewHint(InverseE12Hint, 12, e1.C0.B0.A0, e1.C0.B0.A1, e1.C0.B1.A0, e1.C0.B1.A1, e1.C0.B2.A0, e1.C0.B2.A1, e1.C1.B0.A0, e1.C1.B0.A1, e1.C1.B1.A0, e1.C1.B1.A1, e1.C1.B2.A0, e1.C1.B2.A1)
+	res, err := api.NewHint(solver.NewHint("inverse_212", InverseE12Hint), 12, e1.C0.B0.A0, e1.C0.B0.A1, e1.C0.B1.A0, e1.C0.B1.A1, e1.C0.B2.A0, e1.C0.B2.A1, e1.C1.B0.A0, e1.C1.B0.A1, e1.C1.B1.A0, e1.C1.B1.A1, e1.C1.B2.A0, e1.C1.B2.A1)
 	if err != nil {
 		// err is non-nil only for invalid number of inputs
 		panic(err)
@@ -493,13 +493,13 @@ var DivE12Hint = func(_ *big.Int, inputs []*big.Int, res []*big.Int) error {
 }
 
 func init() {
-	solver.RegisterHint(DivE12Hint)
+	solver.RegisterHint(solver.NewHint("div_e12", DivE12Hint))
 }
 
 // DivUnchecked e12 elmts
 func (e *E12) DivUnchecked(api frontend.API, e1, e2 E12) *E12 {
 
-	res, err := api.NewHint(DivE12Hint, 12, e1.C0.B0.A0, e1.C0.B0.A1, e1.C0.B1.A0, e1.C0.B1.A1, e1.C0.B2.A0, e1.C0.B2.A1, e1.C1.B0.A0, e1.C1.B0.A1, e1.C1.B1.A0, e1.C1.B1.A1, e1.C1.B2.A0, e1.C1.B2.A1, e2.C0.B0.A0, e2.C0.B0.A1, e2.C0.B1.A0, e2.C0.B1.A1, e2.C0.B2.A0, e2.C0.B2.A1, e2.C1.B0.A0, e2.C1.B0.A1, e2.C1.B1.A0, e2.C1.B1.A1, e2.C1.B2.A0, e2.C1.B2.A1)
+	res, err := api.NewHint(solver.NewHint("div_e12", DivE12Hint), 12, e1.C0.B0.A0, e1.C0.B0.A1, e1.C0.B1.A0, e1.C0.B1.A1, e1.C0.B2.A0, e1.C0.B2.A1, e1.C1.B0.A0, e1.C1.B0.A1, e1.C1.B1.A0, e1.C1.B1.A1, e1.C1.B2.A0, e1.C1.B2.A1, e2.C0.B0.A0, e2.C0.B0.A1, e2.C0.B1.A0, e2.C0.B1.A1, e2.C0.B2.A0, e2.C0.B2.A1, e2.C1.B0.A0, e2.C1.B0.A1, e2.C1.B1.A0, e2.C1.B1.A1, e2.C1.B2.A0, e2.C1.B2.A1)
 	if err != nil {
 		// err is non-nil only for invalid number of inputs
 		panic(err)

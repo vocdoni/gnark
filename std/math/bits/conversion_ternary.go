@@ -13,7 +13,7 @@ import (
 var NTrits = nTrits
 
 func init() {
-	solver.RegisterHint(NTrits)
+	solver.RegisterHint(solver.NewHint("n_trits", NTrits))
 }
 
 // ToTernary is an alias of ToBase(api, Ternary, v, opts...)
@@ -70,7 +70,7 @@ func toTernary(api frontend.API, v frontend.Variable, opts ...BaseConversionOpti
 	c := big.NewInt(1)
 	b := big.NewInt(3)
 
-	trits, err := api.Compiler().NewHint(NTrits, cfg.NbDigits, v)
+	trits, err := api.Compiler().NewHint(solver.NewHint("n_trits", NTrits), cfg.NbDigits, v)
 	if err != nil {
 		panic(err)
 	}

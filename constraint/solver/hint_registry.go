@@ -1,6 +1,7 @@
 package solver
 
 import (
+	"fmt"
 	"math/big"
 	"sync"
 
@@ -8,39 +9,37 @@ import (
 )
 
 func init() {
-	RegisterHint(InvZeroHint)
+	RegisterHint(Hint{Fn: InvZeroHint, ID: GetHintID("inv_zero")})
 }
 
 var (
-	registry  = make(map[HintID]Hint)
+	registry  = make(map[HintID]HintFn)
 	registryM sync.RWMutex
 )
 
 // RegisterHint registers a hint function in the global registry.
-func RegisterHint(hintFns ...Hint) {
+func RegisterHint(hints ...Hint) {
 	registryM.Lock()
 	defer registryM.Unlock()
-	for _, hintFn := range hintFns {
-		key := GetHintID(hintFn)
-		name := GetHintName(hintFn)
-		if _, ok := registry[key]; ok {
+	for _, hint := range hints {
+		if _, ok := registry[hint.ID]; ok {
 			log := logger.Logger()
-			log.Warn().Str("name", name).Msg("function registered multiple times")
+			log.Warn().Str("id", fmt.Sprintf("%d", hint.ID)).Msg("function registered multiple times")
 			return
 		}
-		registry[key] = hintFn
+		registry[hint.ID] = hint.Fn
 	}
 }
 
 // GetRegisteredHints returns all registered hint functions.
-func GetRegisteredHints() []Hint {
+func GetRegisteredHints() map[HintID]HintFn {
 	registryM.RLock()
 	defer registryM.RUnlock()
-	ret := make([]Hint, 0, len(registry))
-	for _, v := range registry {
-		ret = append(ret, v)
+	hints := make(map[HintID]HintFn)
+	for id, v := range registry {
+		hints[id] = v
 	}
-	return ret
+	return hints
 }
 
 // InvZeroHint computes the value 1/a for the single input a. If a == 0, returns 0.

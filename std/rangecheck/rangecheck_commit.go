@@ -16,7 +16,7 @@ import (
 type ctxCheckerKey struct{}
 
 func init() {
-	solver.RegisterHint(DecomposeHint, CountHint)
+	solver.RegisterHint(solver.NewHint("decompose", DecomposeHint), solver.NewHint("count", CountHint))
 }
 
 type checkedVariable struct {
@@ -77,7 +77,7 @@ func (c *commitChecker) commit(api frontend.API) error {
 		collected[i] = c.collected[i].v
 		// decompose value into limbs
 		nbLimbs := decompSize(c.collected[i].bits, baseLength)
-		limbs, err := api.Compiler().NewHint(DecomposeHint, int(nbLimbs), c.collected[i].bits, baseLength, c.collected[i].v)
+		limbs, err := api.Compiler().NewHint(solver.NewHint("decompose", DecomposeHint), int(nbLimbs), c.collected[i].bits, baseLength, c.collected[i].v)
 		if err != nil {
 			panic(fmt.Sprintf("decompose %v", err))
 		}
@@ -92,7 +92,7 @@ func (c *commitChecker) commit(api frontend.API) error {
 	}
 	nbTable := 1 << baseLength
 	// compute the counts for every value in the range
-	exps, err := api.Compiler().NewHint(CountHint, nbTable, decomposed...)
+	exps, err := api.Compiler().NewHint(solver.NewHint("count", CountHint), nbTable, decomposed...)
 	if err != nil {
 		panic(fmt.Sprintf("count %v", err))
 	}

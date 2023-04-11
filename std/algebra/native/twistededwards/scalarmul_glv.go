@@ -82,7 +82,7 @@ var DecomposeScalar = func(scalarField *big.Int, inputs []*big.Int, res []*big.I
 }
 
 func init() {
-	solver.RegisterHint(DecomposeScalar)
+	solver.RegisterHint(solver.NewHint("decompose_scalar", DecomposeScalar))
 }
 
 // ScalarMul computes the scalar multiplication of a point on a twisted Edwards curve
@@ -94,7 +94,7 @@ func (p *Point) scalarMulGLV(api frontend.API, p1 *Point, scalar frontend.Variab
 	// the hints allow to decompose the scalar s into s1 and s2 such that
 	// s1 + λ * s2 == s mod Order,
 	// with λ s.t. λ² = -2 mod Order.
-	sd, err := api.NewHint(DecomposeScalar, 3, scalar)
+	sd, err := api.NewHint(solver.NewHint("decompose_scalar", DecomposeScalar), 3, scalar)
 	if err != nil {
 		// err is non-nil only for invalid number of inputs
 		panic(err)

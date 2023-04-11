@@ -199,13 +199,14 @@ var DivE6Hint = func(_ *big.Int, inputs []*big.Int, res []*big.Int) error {
 }
 
 func init() {
-	solver.RegisterHint(DivE6Hint)
+	solver.RegisterHint(solver.NewHint("div_e6", DivE6Hint))
 }
 
 // DivUnchecked e6 elmts
 func (e *E6) DivUnchecked(api frontend.API, e1, e2 E6) *E6 {
 
-	res, err := api.NewHint(DivE6Hint, 6, e1.B0.A0, e1.B0.A1, e1.B1.A0, e1.B1.A1, e1.B2.A0, e1.B2.A1, e2.B0.A0, e2.B0.A1, e2.B1.A0, e2.B1.A1, e2.B2.A0, e2.B2.A1)
+	res, err := api.NewHint(solver.NewHint("div_e6", DivE6Hint), 6, e1.B0.A0, e1.B0.A1,
+		e1.B1.A0, e1.B1.A1, e1.B2.A0, e1.B2.A1, e2.B0.A0, e2.B0.A1, e2.B1.A0, e2.B1.A1, e2.B2.A0, e2.B2.A1)
 	if err != nil {
 		// err is non-nil only for invalid number of inputs
 		panic(err)
@@ -247,13 +248,14 @@ var InverseE6Hint = func(_ *big.Int, inputs []*big.Int, res []*big.Int) error {
 }
 
 func init() {
-	solver.RegisterHint(InverseE6Hint)
+	solver.RegisterHint(solver.NewHint("inverse_e6", InverseE6Hint))
 }
 
 // Inverse e6 elmts
 func (e *E6) Inverse(api frontend.API, e1 E6) *E6 {
 
-	res, err := api.NewHint(InverseE6Hint, 6, e1.B0.A0, e1.B0.A1, e1.B1.A0, e1.B1.A1, e1.B2.A0, e1.B2.A1)
+	res, err := api.NewHint(solver.NewHint("inverse_e6", InverseE6Hint),
+		6, e1.B0.A0, e1.B0.A1, e1.B1.A0, e1.B1.A1, e1.B2.A0, e1.B2.A1)
 	if err != nil {
 		// err is non-nil only for invalid number of inputs
 		panic(err)

@@ -27,7 +27,7 @@ type idHintCircuit struct {
 }
 
 func (c *idHintCircuit) Define(api frontend.API) error {
-	x, err := api.Compiler().NewHint(idHint, 1, c.X)
+	x, err := api.Compiler().NewHint(solver.Hint{ID: solver.GetHintID("id"), Fn: idHint}, 1, c.X)
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func (c *idHintCircuit) Define(api frontend.API) error {
 }
 
 func TestIdHint(t *testing.T) {
-	solver.RegisterHint(idHint)
+	solver.RegisterHint(solver.Hint{ID: solver.GetHintID("id"), Fn: idHint})
 	assignment := idHintCircuit{0}
 	test.NewAssert(t).SolvingSucceeded(&idHintCircuit{}, &assignment, test.WithBackends(backend.GROTH16), test.WithCurves(ecc.BN254))
 }

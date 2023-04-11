@@ -244,7 +244,7 @@ var DecomposeScalarG2 = func(scalarField *big.Int, inputs []*big.Int, res []*big
 }
 
 func init() {
-	solver.RegisterHint(DecomposeScalarG2)
+	solver.RegisterHint(solver.NewHint("decompose_scalar_g2", DecomposeScalarG2))
 }
 
 // varScalarMul sets P = [s] Q and returns P.
@@ -270,7 +270,7 @@ func (P *G2Affine) varScalarMul(api frontend.API, Q G2Affine, s frontend.Variabl
 	// the hints allow to decompose the scalar s into s1 and s2 such that
 	//     s1 + λ * s2 == s mod r,
 	// where λ is third root of one in 𝔽_r.
-	sd, err := api.Compiler().NewHint(DecomposeScalarG2, 3, s)
+	sd, err := api.Compiler().NewHint(solver.NewHint("decompose_scalar_g2", DecomposeScalarG2), 3, s)
 	if err != nil {
 		// err is non-nil only for invalid number of inputs
 		panic(err)

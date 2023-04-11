@@ -2,8 +2,10 @@ package selector
 
 import (
 	"fmt"
-	"github.com/consensys/gnark/frontend"
 	"math/big"
+
+	"github.com/consensys/gnark/constraint/solver"
+	"github.com/consensys/gnark/frontend"
 )
 
 // Slice selects a slice of the input array at indices [start, end), and zeroes the array at other
@@ -69,7 +71,7 @@ func stepMask(api frontend.API, outputLen int,
 		panic("the output len of StepMask must be >= 2")
 	}
 	// get the output as a hint
-	out, err := api.Compiler().NewHint(stepOutput, outputLen, stepPosition, startValue, endValue)
+	out, err := api.Compiler().NewHint(solver.NewHint("step_output", stepOutput), outputLen, stepPosition, startValue, endValue)
 	if err != nil {
 		panic(fmt.Sprintf("error in calling StepMask hint: %v", err))
 	}

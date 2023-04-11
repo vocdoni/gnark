@@ -3,8 +3,6 @@ package solver
 import (
 	"hash/fnv"
 	"math/big"
-	"reflect"
-	"runtime"
 )
 
 // HintID is a unique identifier for a hint function used for lookup.
@@ -81,12 +79,18 @@ type HintID uint32
 //
 // In the init() method of the gadget, call the method RegisterHint(hintFn) function on
 // the hint function hintFn to register a hint function in the package registry.
-type Hint func(field *big.Int, inputs []*big.Int, outputs []*big.Int) error
+type Hint struct {
+	Fn HintFn
+	ID HintID
+}
+
+// HintFn is the function that performs the hint computation.
+type HintFn func(field *big.Int, inputs []*big.Int, outputs []*big.Int) error
 
 // GetHintID is a reference function for computing the hint ID based on a function name
-func GetHintID(fn Hint) HintID {
+func GetHintID(name string) HintID {
 	hf := fnv.New32a()
-	name := GetHintName(fn)
+	//name := GetHintName(fn)
 
 	// TODO relying on name to derive UUID is risky; if fn is an anonymous func, wil be package.glob..funcN
 	// and if new anonymous functions are added in the package, N may change, so will UUID.
@@ -95,7 +99,19 @@ func GetHintID(fn Hint) HintID {
 	return HintID(hf.Sum32())
 }
 
-func GetHintName(fn Hint) string {
-	fnptr := reflect.ValueOf(fn).Pointer()
-	return runtime.FuncForPC(fnptr).Name()
+// NewHint creates a new hint with the given name and function. It does not register the hint in the registry.
+func NewHint(name string, fn HintFn) Hint {
+	return Hint{
+		Fn: fn,
+		ID: GetHintID(name),
+	}
 }
+
+/*func GetHintName(string) HintID {
+	fnptr := reflect.ValueOf(fn).Pointer()
+	name := runtime.FuncForPC(fnptr).Name()
+	identifier := fmt.Sprintf("%#x", fnptr)
+	fmt.Printf("GetHintName %s: %s\n", name, identifier)
+	return identifier
+}
+*/

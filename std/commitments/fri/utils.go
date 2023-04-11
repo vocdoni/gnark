@@ -84,5 +84,5 @@ var DeriveQueriesPositions = func(_ *big.Int, inputs []*big.Int, res []*big.Int)
 }
 
 func init() {
-	solver.RegisterHint(DeriveQueriesPositions)
+	solver.RegisterHint(solver.NewHint("derive_queries_positions", DeriveQueriesPositions))
 }

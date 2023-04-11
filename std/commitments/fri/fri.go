@@ -6,6 +6,7 @@ import (
 	"math/bits"
 
 	"github.com/consensys/gnark-crypto/ecc"
+	"github.com/consensys/gnark/constraint/solver"
 	"github.com/consensys/gnark/internal/utils"
 	fiatshamir "github.com/consensys/gnark/std/fiat-shamir"
 	"github.com/consensys/gnark/std/hash"
@@ -133,7 +134,8 @@ func (s RadixTwoFri) verifyProofOfProximitySingleRound(api frontend.API, salt fr
 	bin := api.ToBinary(binSeed)
 	bPos := api.FromBinary(bin[:logRho+s.nbSteps]...)
 
-	si, err := api.NewHint(DeriveQueriesPositions, s.nbSteps, bPos, rho*s.size, s.nbSteps)
+	si, err := api.NewHint(solver.NewHint("derive_queries_positions", DeriveQueriesPositions),
+		s.nbSteps, bPos, rho*s.size, s.nbSteps)
 	if err != nil {
 		return err
 	}

@@ -68,7 +68,7 @@ func UnwrapHint(nativeInputs, nativeOutputs []*big.Int, nonnativeHint solver.Hin
 	for i := range nonnativeOutputs {
 		nonnativeOutputs[i] = new(big.Int)
 	}
-	if err := nonnativeHint(nonnativeMod, nonnativeInputs, nonnativeOutputs); err != nil {
+	if err := nonnativeHint.Fn(nonnativeMod, nonnativeInputs, nonnativeOutputs); err != nil {
 		return fmt.Errorf("nonnative hint: %w", err)
 	}
 	for i := range nonnativeOutputs {

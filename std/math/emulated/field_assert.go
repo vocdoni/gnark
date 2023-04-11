@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/consensys/gnark/constraint/solver"
 	"github.com/consensys/gnark/frontend"
 )
 
@@ -46,7 +47,7 @@ func (f *Field[T]) rsh(v frontend.Variable, startDigit, endDigit int) frontend.V
 		}
 		return bits
 	}
-	shifted, err := f.api.Compiler().NewHint(RightShift, 1, startDigit, v)
+	shifted, err := f.api.Compiler().NewHint(solver.NewHint("right_shift", RightShift), 1, startDigit, v)
 	if err != nil {
 		panic(fmt.Sprintf("right shift: %v", err))
 	}

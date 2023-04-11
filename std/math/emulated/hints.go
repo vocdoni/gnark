@@ -18,12 +18,12 @@ func init() {
 // GetHints returns all hint functions used in the package.
 func GetHints() []solver.Hint {
 	return []solver.Hint{
-		DivHint,
-		QuoHint,
-		InverseHint,
-		MultiplicationHint,
-		RemHint,
-		RightShift,
+		solver.NewHint("div", DivHint),
+		solver.NewHint("quo", QuoHint),
+		solver.NewHint("inverse", InverseHint),
+		solver.NewHint("multiplication", MultiplicationHint),
+		solver.NewHint("rem", RemHint),
+		solver.NewHint("right_shift", RightShift),
 	}
 }
 
@@ -36,7 +36,7 @@ func (f *Field[T]) computeMultiplicationHint(leftLimbs, rightLimbs []frontend.Va
 	}
 	hintInputs = append(hintInputs, leftLimbs...)
 	hintInputs = append(hintInputs, rightLimbs...)
-	return f.api.NewHint(MultiplicationHint, nbMultiplicationResLimbs(len(leftLimbs), len(rightLimbs)), hintInputs...)
+	return f.api.NewHint(solver.NewHint("multiplication", MultiplicationHint), nbMultiplicationResLimbs(len(leftLimbs), len(rightLimbs)), hintInputs...)
 }
 
 // nbMultiplicationResLimbs returns the number of limbs which fit the
@@ -93,7 +93,7 @@ func (f *Field[T]) computeRemHint(x, y *Element[T]) (z *Element[T], err error) {
 	}
 	hintInputs = append(hintInputs, x.Limbs...)
 	hintInputs = append(hintInputs, y.Limbs...)
-	limbs, err := f.api.NewHint(RemHint, int(len(y.Limbs)), hintInputs...)
+	limbs, err := f.api.NewHint(solver.NewHint("rem", RemHint), int(len(y.Limbs)), hintInputs...)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (f *Field[T]) computeQuoHint(x *Element[T]) (z *Element[T], err error) {
 	hintInputs = append(hintInputs, x.Limbs...)
 	hintInputs = append(hintInputs, p.Limbs...)
 
-	limbs, err := f.api.NewHint(QuoHint, int(resLen), hintInputs...)
+	limbs, err := f.api.NewHint(solver.NewHint("quo", QuoHint), int(resLen), hintInputs...)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func (f *Field[T]) computeInverseHint(inLimbs []frontend.Variable) (inverseLimbs
 	p := f.Modulus()
 	hintInputs = append(hintInputs, p.Limbs...)
 	hintInputs = append(hintInputs, inLimbs...)
-	return f.api.NewHint(InverseHint, int(fp.NbLimbs()), hintInputs...)
+	return f.api.NewHint(solver.NewHint("inverse", InverseHint), int(fp.NbLimbs()), hintInputs...)
 }
 
 // InverseHint computes the inverse x^-1 for the input x and stores it in outputs.
@@ -215,7 +215,7 @@ func (f *Field[T]) computeDivisionHint(nomLimbs, denomLimbs []frontend.Variable)
 	hintInputs = append(hintInputs, p.Limbs...)
 	hintInputs = append(hintInputs, nomLimbs...)
 	hintInputs = append(hintInputs, denomLimbs...)
-	return f.api.NewHint(DivHint, int(fp.NbLimbs()), hintInputs...)
+	return f.api.NewHint(solver.NewHint("div", DivHint), int(fp.NbLimbs()), hintInputs...)
 }
 
 // DivHint computes the value z = x/y for inputs x and y and stores z in

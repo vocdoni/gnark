@@ -28,7 +28,10 @@ func init() {
 // GetHints returns all hint functions used in this package. This method is
 // useful for registering all hints in the solver.
 func GetHints() []solver.Hint {
-	return []solver.Hint{stepOutput, muxIndicators, mapIndicators}
+	return []solver.Hint{
+		solver.NewHint("step_output", stepOutput),
+		solver.NewHint("mux_indicators", muxIndicators),
+		solver.NewHint("map_indicators", mapIndicators)}
 }
 
 // Map is a key value associative array: the output will be values[i] such that keys[i] == queryKey. If keys does not
@@ -63,9 +66,9 @@ func generateSelector(api frontend.API, wantMux bool, sel frontend.Variable,
 	var indicators []frontend.Variable
 	var err error
 	if wantMux {
-		indicators, err = api.Compiler().NewHint(muxIndicators, len(values), sel)
+		indicators, err = api.Compiler().NewHint(solver.NewHint("mux_indicators", muxIndicators), len(values), sel)
 	} else {
-		indicators, err = api.Compiler().NewHint(mapIndicators, len(keys), append(keys, sel)...)
+		indicators, err = api.Compiler().NewHint(solver.NewHint("map_indicators", mapIndicators), len(keys), append(keys, sel)...)
 	}
 	if err != nil {
 		panic(fmt.Sprintf("error in calling Mux/Map hint: %v", err))

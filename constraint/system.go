@@ -230,14 +230,8 @@ func (system *System) AddSolverHint(f solver.Hint, input []LinearExpression, nbO
 	}
 
 	// register the hint as dependency
-	hintUUID, hintID := solver.GetHintID(f), solver.GetHintName(f)
-	if id, ok := system.MHintsDependencies[hintUUID]; ok {
-		// hint already registered, let's ensure string id matches
-		if id != hintID {
-			return nil, fmt.Errorf("hint dependency registration failed; %s previously register with same UUID as %s", hintID, id)
-		}
-	} else {
-		system.MHintsDependencies[hintUUID] = hintID
+	if _, ok := system.MHintsDependencies[f.ID]; !ok {
+		system.MHintsDependencies[f.ID] = fmt.Sprintf("hint %d", f.ID)
 	}
 
 	// prepare wires
@@ -247,7 +241,7 @@ func (system *System) AddSolverHint(f solver.Hint, input []LinearExpression, nbO
 	}
 
 	// associate these wires with the solver hint
-	hm := HintMapping{HintID: hintUUID, Inputs: input, Outputs: internalVariables}
+	hm := HintMapping{HintID: f.ID, Inputs: input, Outputs: internalVariables}
 	system.HintMappings = append(system.HintMappings, hm)
 	n := len(system.HintMappings) - 1
 	for _, vID := range internalVariables {

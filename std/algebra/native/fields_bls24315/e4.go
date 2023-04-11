@@ -165,13 +165,13 @@ var DivE4Hint = func(_ *big.Int, inputs []*big.Int, res []*big.Int) error {
 }
 
 func init() {
-	solver.RegisterHint(DivE4Hint)
+	solver.RegisterHint(solver.NewHint("div_e4", DivE4Hint))
 }
 
 // DivUnchecked e4 elmts
 func (e *E4) DivUnchecked(api frontend.API, e1, e2 E4) *E4 {
 
-	res, err := api.NewHint(DivE4Hint, 4, e1.B0.A0, e1.B0.A1, e1.B1.A0, e1.B1.A1, e2.B0.A0, e2.B0.A1, e2.B1.A0, e2.B1.A1)
+	res, err := api.NewHint(solver.NewHint("div_e4", DivE4Hint), 4, e1.B0.A0, e1.B0.A1, e1.B1.A0, e1.B1.A1, e2.B0.A0, e2.B0.A1, e2.B1.A0, e2.B1.A1)
 	if err != nil {
 		// err is non-nil only for invalid number of inputs
 		panic(err)
@@ -208,13 +208,14 @@ var InverseE4Hint = func(_ *big.Int, inputs []*big.Int, res []*big.Int) error {
 }
 
 func init() {
-	solver.RegisterHint(InverseE4Hint)
+	solver.RegisterHint(solver.NewHint("inverse_e4", InverseE4Hint))
 }
 
 // Inverse e4 elmts
 func (e *E4) Inverse(api frontend.API, e1 E4) *E4 {
 
-	res, err := api.NewHint(InverseE4Hint, 4, e1.B0.A0, e1.B0.A1, e1.B1.A0, e1.B1.A1)
+	res, err := api.NewHint(solver.NewHint("inverse_e4", InverseE4Hint),
+		4, e1.B0.A0, e1.B0.A1, e1.B1.A0, e1.B1.A1)
 	if err != nil {
 		// err is non-nil only for invalid number of inputs
 		panic(err)

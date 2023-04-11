@@ -433,7 +433,7 @@ func (builder *builder) IsZero(i1 frontend.Variable) frontend.Variable {
 	m := builder.newInternalVariable()
 
 	// x = 1/a 				// in a hint (x == 0 if a == 0)
-	x, err := builder.NewHint(solver.InvZeroHint, 1, a)
+	x, err := builder.NewHint(solver.NewHint("inv_zero", solver.InvZeroHint), 1, a)
 	if err != nil {
 		// the function errs only if the number of inputs is invalid.
 		panic(err)

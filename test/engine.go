@@ -470,7 +470,7 @@ func (e *engine) NewHint(f solver.Hint, nbOutputs int, inputs ...frontend.Variab
 		res[i] = new(big.Int)
 	}
 
-	err := f(e.Field(), in, res)
+	err := f.Fn(e.Field(), in, res)
 
 	if err != nil {
 		panic("NewHint: " + err.Error())

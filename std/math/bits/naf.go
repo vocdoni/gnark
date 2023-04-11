@@ -13,7 +13,7 @@ import (
 var NNAF = nNaf
 
 func init() {
-	solver.RegisterHint(NNAF)
+	solver.RegisterHint(solver.NewHint("nnaf", NNAF))
 }
 
 // ToNAF returns the NAF decomposition of given input.
@@ -34,7 +34,7 @@ func ToNAF(api frontend.API, v frontend.Variable, opts ...BaseConversionOption) 
 
 	c := big.NewInt(1)
 
-	bits, err := api.Compiler().NewHint(NNAF, cfg.NbDigits, v)
+	bits, err := api.Compiler().NewHint(solver.NewHint("nnaf", NNAF), cfg.NbDigits, v)
 	if err != nil {
 		panic(err)
 	}

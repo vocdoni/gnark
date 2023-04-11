@@ -20,7 +20,7 @@ func HintExample(nativeMod *big.Int, nativeInputs, nativeOutputs []*big.Int) err
 	// nativeInputs are the limbs of the input non-native elements. We wrap the
 	// actual hint function with [emulated.UnwrapHint] to get actual [*big.Int]
 	// values of the non-native elements.
-	return emulated.UnwrapHint(nativeInputs, nativeOutputs, func(mod *big.Int, inputs, outputs []*big.Int) error {
+	return emulated.UnwrapHint(nativeInputs, nativeOutputs, solver.NewHint("example", func(mod *big.Int, inputs, outputs []*big.Int) error {
 		// this hint computes the division of first and second input and returns it.
 		nominator := inputs[0]
 		denominator := inputs[1]
@@ -32,7 +32,7 @@ func HintExample(nativeMod *big.Int, nativeInputs, nativeOutputs []*big.Int) err
 		res.Mod(res, mod)
 		outputs[0].Set(res)
 		return nil
-	})
+	}))
 	// when the internal hint function returns, the UnwrapHint function
 	// decomposes the non-native value into limbs.
 }
@@ -48,7 +48,7 @@ func (c *emulationHintCircuit[T]) Define(api frontend.API) error {
 	if err != nil {
 		return err
 	}
-	res, err := field.NewHint(HintExample, 1, &c.Nominator, &c.Denominator)
+	res, err := field.NewHint(solver.NewHint("example", HintExample), 1, &c.Nominator, &c.Denominator)
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,8 @@ func ExampleField_NewHint() {
 	} else {
 		fmt.Println("setup done")
 	}
-	proof, err := groth16.Prove(ccs, pk, witnessData, backend.WithSolverOptions(solver.WithHints(HintExample)))
+	proof, err := groth16.Prove(ccs, pk, witnessData, backend.WithSolverOptions(
+		solver.WithHints(solver.NewHint("example", HintExample))))
 	if err != nil {
 		panic(err)
 	} else {

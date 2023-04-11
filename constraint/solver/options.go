@@ -1,6 +1,8 @@
 package solver
 
 import (
+	"fmt"
+
 	"github.com/consensys/gnark/logger"
 	"github.com/rs/zerolog"
 )
@@ -12,8 +14,8 @@ type Option func(*Config) error
 
 // Config is the configuration for the solver with the options applied.
 type Config struct {
-	HintFunctions map[HintID]Hint // defaults to all built-in hint functions
-	Logger        zerolog.Logger  // defaults to gnark.Logger
+	HintFunctions map[HintID]HintFn // defaults to all built-in hint functions
+	Logger        zerolog.Logger    // defaults to gnark.Logger
 }
 
 // WithHints is a solver option that specifies additional hint functions to be used
@@ -24,11 +26,11 @@ func WithHints(hintFunctions ...Hint) Option {
 		// it is an error to register hint function several times, but as the
 		// prover already checks it then omit here.
 		for _, h := range hintFunctions {
-			uuid := GetHintID(h)
+			uuid := h.ID
 			if _, ok := opt.HintFunctions[uuid]; ok {
-				log.Warn().Int("hintID", int(uuid)).Str("name", GetHintName(h)).Msg("duplicate hint function")
+				log.Warn().Int("hintID", int(uuid)).Str("id", fmt.Sprintf("%d", h.ID)).Msg("duplicate hint function")
 			} else {
-				opt.HintFunctions[uuid] = h
+				opt.HintFunctions[uuid] = h.Fn
 			}
 		}
 		return nil
@@ -36,7 +38,7 @@ func WithHints(hintFunctions ...Hint) Option {
 }
 
 // OverrideHint forces the solver to use provided hint function for given id.
-func OverrideHint(id HintID, f Hint) Option {
+func OverrideHint(id HintID, f HintFn) Option {
 	return func(opt *Config) error {
 		opt.HintFunctions[id] = f
 		return nil
@@ -56,9 +58,9 @@ func WithLogger(l zerolog.Logger) Option {
 // NewConfig returns a default SolverConfig with given prover options opts applied.
 func NewConfig(opts ...Option) (Config, error) {
 	log := logger.Logger()
-	opt := Config{Logger: log, HintFunctions: make(map[HintID]Hint)}
-	for _, v := range GetRegisteredHints() {
-		opt.HintFunctions[GetHintID(v)] = v
+	opt := Config{Logger: log, HintFunctions: make(map[HintID]HintFn)}
+	for k, v := range GetRegisteredHints() {
+		opt.HintFunctions[k] = v // copy
 	}
 	for _, option := range opts {
 		if err := option(&opt); err != nil {

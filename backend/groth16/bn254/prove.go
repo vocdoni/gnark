@@ -66,7 +66,8 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 	solverOpts := opt.SolverOpts[:len(opt.SolverOpts):len(opt.SolverOpts)]
 
 	if r1cs.CommitmentInfo.Is() {
-		solverOpts = append(solverOpts, solver.OverrideHint(r1cs.CommitmentInfo.HintID, func(_ *big.Int, in []*big.Int, out []*big.Int) error {
+		solverOpts = append(solverOpts, solver.OverrideHint(r1cs.CommitmentInfo.HintID,
+			func(_ *big.Int, in []*big.Int, out []*big.Int) error {
 			// Perf-TODO: Converting these values to big.Int and back may be a performance bottleneck.
 			// If that is the case, figure out a way to feed the solution vector into this function
 			if len(in) != r1cs.CommitmentInfo.NbCommitted() { // TODO: Remove

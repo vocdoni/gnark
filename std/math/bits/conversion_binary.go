@@ -9,8 +9,8 @@ import (
 
 func init() {
 	// register hints
-	solver.RegisterHint(IthBit)
-	solver.RegisterHint(NBits)
+	solver.RegisterHint(solver.NewHint("ith_bit", IthBit))
+	solver.RegisterHint(solver.NewHint("n_bits", NBits))
 }
 
 // ToBinary is an alias of ToBase(api, Binary, v, opts)
@@ -65,7 +65,7 @@ func toBinary(api frontend.API, v frontend.Variable, opts ...BaseConversionOptio
 
 	c := big.NewInt(1)
 
-	bits, err := api.Compiler().NewHint(NBits, cfg.NbDigits, v)
+	bits, err := api.Compiler().NewHint(solver.NewHint("n_bits", NBits), cfg.NbDigits, v)
 	if err != nil {
 		panic(err)
 	}
