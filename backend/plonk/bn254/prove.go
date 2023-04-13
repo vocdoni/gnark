@@ -20,7 +20,6 @@ import (
 	"crypto/sha256"
 	"math/big"
 	"runtime"
-	"sync"
 	"time"
 
 	"github.com/consensys/gnark/backend/witness"
@@ -269,6 +268,7 @@ func Prove(spr *cs.SparseR1CS, pk *ProvingKey, fullWitness witness.Witness, opts
 
 		return c
 	}
+	log.Debug().Msg("system evaluation")
 	systemEvaluation, err := iop.Evaluate(fm, iop.Form{Basis: iop.LagrangeCoset, Layout: iop.BitReverse},
 		bwliop,
 		bwriop,
@@ -311,47 +311,17 @@ func Prove(spr *cs.SparseR1CS, pk *ProvingKey, fullWitness witness.Witness, opts
 	}
 
 	// compute evaluations of (blinded version of) l, r, o, z at zeta
-	log.Debug().Msg("computing evaluations of (blinded version")
+	log.Debug().Msg("computing evaluations (blinded version)")
 	var blzeta, brzeta, bozeta fr.Element
 
-	// +build !tinygo
-	var wgEvals sync.WaitGroup
+	bwliop.ToCanonical(&pk.Domain[1]).ToRegular()
+	blzeta = bwliop.Evaluate(zeta)
 
-	// +build !tinygo
-	wgEvals.Add(3)
+	bwriop.ToCanonical(&pk.Domain[1]).ToRegular()
+	brzeta = bwriop.Evaluate(zeta)
 
-	// +build !tinygo
-	go func() {
-		bwliop.ToCanonical(&pk.Domain[1]).ToRegular()
-		blzeta = bwliop.Evaluate(zeta)
-		wgEvals.Done()
-	}()
-
-	// +build !tinygo
-	go func() {
-		bwriop.ToCanonical(&pk.Domain[1]).ToRegular()
-		brzeta = bwriop.Evaluate(zeta)
-		wgEvals.Done()
-	}()
-
-	// +build !tinygo
-	go func() {
-		bwoiop.ToCanonical(&pk.Domain[1]).ToRegular()
-		bozeta = bwoiop.Evaluate(zeta)
-		wgEvals.Done()
-	}()
-
-	// +build tinygo
-	{
-		bwliop.ToCanonical(&pk.Domain[1]).ToRegular()
-		blzeta = bwliop.Evaluate(zeta)
-
-		bwriop.ToCanonical(&pk.Domain[1]).ToRegular()
-		brzeta = bwriop.Evaluate(zeta)
-
-		bwoiop.ToCanonical(&pk.Domain[1]).ToRegular()
-		bozeta = bwoiop.Evaluate(zeta)
-	}
+	bwoiop.ToCanonical(&pk.Domain[1]).ToRegular()
+	bozeta = bwoiop.Evaluate(zeta)
 
 	// open blinded Z at zeta*z
 	bwziop.ToCanonical(&pk.Domain[1]).ToRegular()
@@ -374,10 +344,6 @@ func Prove(spr *cs.SparseR1CS, pk *ProvingKey, fullWitness witness.Witness, opts
 		linearizedPolynomialDigest    curve.G1Affine
 		errLPoly                      error
 	)
-
-	log.Debug().Msg("waiting for evaluations")
-	// +build !tinygo
-	wgEvals.Wait() // wait for the evaluations
 
 	// compute the linearization polynomial r at zeta
 	// (goal: save committing separately to z, ql, qr, qm, qo, k

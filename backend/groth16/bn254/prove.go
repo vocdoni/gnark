@@ -29,7 +29,6 @@ import (
 	"github.com/consensys/gnark/internal/utils"
 	"github.com/consensys/gnark/logger"
 	"math/big"
-	"runtime"
 	"time"
 )
 
@@ -93,6 +92,7 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 		}))
 	}
 
+	log.Debug().Msg("solving r1cs")
 	_solution, err := r1cs.Solve(fullWitness, solverOpts...)
 	if err != nil {
 		return nil, err
@@ -104,7 +104,7 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 	start := time.Now()
 
 	// H (witness reduction / FFT part)
-	log.Debug().Msg("computing H")
+	log.Debug().Msg("computing witness reduction")
 	var h []fr.Element
 	chHDone := make(chan struct{}, 1)
 	go func() {
@@ -163,12 +163,12 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 
 	var bs1, ar curve.G1Jac
 
-	n := runtime.NumCPU()
+	n := 1
 
 	chBs1Done := make(chan error, 1)
 	computeBS1 := func() {
 		<-chWireValuesB
-		if _, err := bs1.MultiExp(pk.G1.B, wireValuesB, ecc.MultiExpConfig{NbTasks: n / 2}); err != nil {
+		if _, err := bs1.MultiExp(pk.G1.B, wireValuesB, ecc.MultiExpConfig{NbTasks: n }); err != nil {
 			chBs1Done <- err
 			close(chBs1Done)
 			return
@@ -181,7 +181,7 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 	chArDone := make(chan error, 1)
 	computeAR1 := func() {
 		<-chWireValuesA
-		if _, err := ar.MultiExp(pk.G1.A, wireValuesA, ecc.MultiExpConfig{NbTasks: n / 2}); err != nil {
+		if _, err := ar.MultiExp(pk.G1.A, wireValuesA, ecc.MultiExpConfig{NbTasks: n }); err != nil {
 			chArDone <- err
 			close(chArDone)
 			return
@@ -201,14 +201,14 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 		chKrs2Done := make(chan error, 1)
 		sizeH := int(pk.Domain.Cardinality - 1) // comes from the fact the deg(H)=(n-1)+(n-1)-n=n-2
 		go func() {
-			_, err := krs2.MultiExp(pk.G1.Z, h[:sizeH], ecc.MultiExpConfig{NbTasks: n / 2})
+			_, err := krs2.MultiExp(pk.G1.Z, h[:sizeH], ecc.MultiExpConfig{NbTasks: n })
 			chKrs2Done <- err
 		}()
 
 		// filter the wire values if needed;
 		_wireValues := filter(wireValues, r1cs.CommitmentInfo.PrivateToPublic())
 
-		if _, err := krs.MultiExp(pk.G1.K, _wireValues[r1cs.GetNbPublicVariables():], ecc.MultiExpConfig{NbTasks: n / 2}); err != nil {
+		if _, err := krs.MultiExp(pk.G1.K, _wireValues[r1cs.GetNbPublicVariables():], ecc.MultiExpConfig{NbTasks: n }); err != nil {
 			chKrsDone <- err
 			return
 		}
@@ -271,9 +271,13 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 	<-chHDone
 
 	// schedule our proof part computations
+	log.Debug().Msg("computing KRS")
 	go computeKRS()
+	log.Debug().Msg("computing AR1")
 	go computeAR1()
+	log.Debug().Msg("computing BS1")
 	go computeBS1()
+	log.Debug().Msg("computing BS2")
 	if err := computeBS2(); err != nil {
 		return nil, err
 	}
