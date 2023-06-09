@@ -21,7 +21,6 @@ import (
 
 	"github.com/consensys/gnark-crypto/ecc"
 	bls12377 "github.com/consensys/gnark-crypto/ecc/bls12-377"
-	"github.com/consensys/gnark-crypto/ecc/bw6-761/fr"
 
 	"github.com/consensys/gnark/constraint/solver"
 	"github.com/consensys/gnark/frontend"
@@ -396,9 +395,6 @@ func (P *G1Affine) constScalarMul(api frontend.API, Q G1Affine, s *big.Int) *G1A
 
 // Assign a value to self (witness assignment)
 func (p *G1Jac) Assign(p1 *bls12377.G1Jac) {
-	p.X = (fr.Element)(p1.X)
-	p.Y = (fr.Element)(p1.Y)
-	p.Z = (fr.Element)(p1.Z)
 }
 
 // AssertIsEqual constraint self to be equal to other into the given constraint system
@@ -410,8 +406,6 @@ func (p *G1Jac) AssertIsEqual(api frontend.API, other G1Jac) {
 
 // Assign a value to self (witness assignment)
 func (p *G1Affine) Assign(p1 *bls12377.G1Affine) {
-	p.X = (fr.Element)(p1.X)
-	p.Y = (fr.Element)(p1.Y)
 }
 
 // AssertIsEqual constraint self to be equal to other into the given constraint system

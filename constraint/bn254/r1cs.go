@@ -21,8 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"runtime"
-	"sync"
 	"time"
 
 	"github.com/consensys/gnark/backend/witness"
@@ -33,7 +31,6 @@ import (
 	"github.com/consensys/gnark/profile"
 
 	"github.com/consensys/gnark-crypto/ecc"
-	"math"
 
 	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 )
@@ -161,96 +158,17 @@ func (cs *R1CS) solve(witness, a, b, c fr.Vector, opt solver.Config) (fr.Vector,
 	return solution.values, nil
 }
 
+// This method has been rewrite to be not be parallel
 func (cs *R1CS) parallelSolve(a, b, c fr.Vector, solution *solution) error {
-	// minWorkPerCPU is the minimum target number of constraint a task should hold
-	// in other words, if a level has less than minWorkPerCPU, it will not be parallelized and executed
-	// sequentially without sync.
-	const minWorkPerCPU = 50.0
-
-	// cs.Levels has a list of levels, where all constraints in a level l(n) are independent
-	// and may only have dependencies on previous levels
-	// for each constraint
-	// we are guaranteed that each R1C contains at most one unsolved wire
-	// first we solve the unsolved wire (if any)
-	// then we check that the constraint is valid
-	// if a[i] * b[i] != c[i]; it means the constraint is not satisfied
-
-	var wg sync.WaitGroup
-	chTasks := make(chan []int, runtime.NumCPU())
-	chError := make(chan *UnsatisfiedConstraintError, runtime.NumCPU())
-
-	// start a worker pool
-	// each worker wait on chTasks
-	// a task is a slice of constraint indexes to be solved
-	for i := 0; i < runtime.NumCPU(); i++ {
-		go func() {
-			for t := range chTasks {
-				for _, i := range t {
-					// for each constraint in the task, solve it.
-					if err := cs.solveConstraint(cs.Constraints[i], solution, &a[i], &b[i], &c[i]); err != nil {
-						var debugInfo *string
-						if dID, ok := cs.MDebug[i]; ok {
-							debugInfo = new(string)
-							*debugInfo = solution.logValue(cs.DebugInfo[dID])
-						}
-						chError <- &UnsatisfiedConstraintError{CID: i, Err: err, DebugInfo: debugInfo}
-						wg.Done()
-						return
-					}
-				}
-				wg.Done()
-			}
-		}()
-	}
-
-	// clean up pool go routines
-	defer func() {
-		close(chTasks)
-		close(chError)
-	}()
-
-	// for each level, we push the tasks
 	for _, level := range cs.Levels {
-
-		// max CPU to use
-		maxCPU := float64(len(level)) / minWorkPerCPU
-
-		if maxCPU <= 1.0 {
-			// we do it sequentially
-			for _, i := range level {
-				if err := cs.solveConstraint(cs.Constraints[i], solution, &a[i], &b[i], &c[i]); err != nil {
-					var debugInfo *string
-					if dID, ok := cs.MDebug[i]; ok {
-						debugInfo = new(string)
-						*debugInfo = solution.logValue(cs.DebugInfo[dID])
-					}
-					return &UnsatisfiedConstraintError{CID: i, Err: err, DebugInfo: debugInfo}
-				}
-			}
-			continue
-		}
-
-		// number of tasks for this level is set to number of CPU
-		// but if we don't have enough work for all our CPU, it can be lower.
-		nbTasks := runtime.NumCPU()
-		maxTasks := int(math.Ceil(maxCPU))
-		if nbTasks > maxTasks {
-			nbTasks = maxTasks
-		}
-		nbIterationsPerCpus := len(level) / nbTasks
-
-		// more CPUs than tasks: a CPU will work on exactly one iteration
-		// note: this depends on minWorkPerCPU constant
-		if nbIterationsPerCpus < 1 {
-			nbIterationsPerCpus = 1
-			nbTasks = len(level)
-		}
+		// Calculate the number of tasks for this level
+		nbTasks := len(level)
+		nbIterationsPerCpus := 1
 
 		extraTasks := len(level) - (nbTasks * nbIterationsPerCpus)
 		extraTasksOffset := 0
 
 		for i := 0; i < nbTasks; i++ {
-			wg.Add(1)
 			_start := i*nbIterationsPerCpus + extraTasksOffset
 			_end := _start + nbIterationsPerCpus
 			if extraTasks > 0 {
@@ -258,21 +176,25 @@ func (cs *R1CS) parallelSolve(a, b, c fr.Vector, solution *solution) error {
 				extraTasks--
 				extraTasksOffset++
 			}
-			// since we're never pushing more than num CPU tasks
-			// we will never be blocked here
-			chTasks <- level[_start:_end]
-		}
 
-		// wait for the level to be done
-		wg.Wait()
-
-		if len(chError) > 0 {
-			return <-chError
+			// For each task, solve the constraints in the task
+			for _, j := range level[_start:_end] {
+				if err := cs.solveConstraint(cs.Constraints[j], solution, &a[j], &b[j], &c[j]); err != nil {
+					var debugInfo *string
+					if dID, ok := cs.MDebug[j]; ok {
+						debugInfo = new(string)
+						*debugInfo = solution.logValue(cs.DebugInfo[dID])
+					}
+					return &UnsatisfiedConstraintError{CID: j, Err: err, DebugInfo: debugInfo}
+				}
+			}
 		}
 	}
 
 	return nil
 }
+
+
 
 // IsSolved
 // Deprecated: use _, err := Solve(...) instead

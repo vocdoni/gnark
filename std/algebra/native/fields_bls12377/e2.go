@@ -20,7 +20,6 @@ import (
 	"math/big"
 
 	bls12377 "github.com/consensys/gnark-crypto/ecc/bls12-377"
-	"github.com/consensys/gnark-crypto/ecc/bw6-761/fr"
 
 	"github.com/consensys/gnark/constraint/solver"
 	"github.com/consensys/gnark/frontend"
@@ -223,8 +222,6 @@ func (e *E2) DivUnchecked(api frontend.API, e1, e2 E2) *E2 {
 
 // Assign a value to self (witness assignment)
 func (e *E2) Assign(a *bls12377.E2) {
-	e.A0 = (fr.Element)(a.A0)
-	e.A1 = (fr.Element)(a.A1)
 }
 
 // AssertIsEqual constraint self to be equal to other into the given constraint system

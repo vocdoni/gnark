@@ -20,7 +20,6 @@ import (
 	"math/big"
 
 	bls24315 "github.com/consensys/gnark-crypto/ecc/bls24-315"
-	"github.com/consensys/gnark-crypto/ecc/bw6-633/fr"
 	"github.com/consensys/gnark/constraint/solver"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/internal/utils"
@@ -226,8 +225,6 @@ func (e *E2) Inverse(api frontend.API, e1 E2) *E2 {
 
 // Assign a value to self (witness assignment)
 func (e *E2) Assign(a *bls24315.E2) {
-	e.A0 = (fr.Element)(a.A0)
-	e.A1 = (fr.Element)(a.A1)
 }
 
 // AssertIsEqual constraint self to be equal to other into the given constraint system

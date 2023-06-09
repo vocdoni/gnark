@@ -62,9 +62,11 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 
 	proof := &Proof{}
 
+	fmt.Println("setting solver opts")
 	solverOpts := opt.SolverOpts[:len(opt.SolverOpts):len(opt.SolverOpts)]
 
 	if r1cs.CommitmentInfo.Is() {
+		fmt.Println("overriding commitment info hint")
 		solverOpts = append(solverOpts, solver.OverrideHint(r1cs.CommitmentInfo.HintID,
 			func(_ *big.Int, in []*big.Int, out []*big.Int) error {
 			// Perf-TODO: Converting these values to big.Int and back may be a performance bottleneck.
@@ -87,17 +89,26 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 
 			var res fr.Element
 			res, err = solveCommitmentWire(&r1cs.CommitmentInfo, &proof.Commitment, in[:r1cs.CommitmentInfo.NbPublicCommitted()])
+			if err != nil {
+				return err
+			}
 			res.BigInt(out[0])
-			return err
+			return nil
 		}))
 	}
 
 	log.Debug().Msg("solving r1cs")
+	data, err := fullWitness.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("fullwitness data size is ", len(data))
+	fmt.Println("solving witness")
 	_solution, err := r1cs.Solve(fullWitness, solverOpts...)
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("solved witness!")
 	solution := _solution.(*cs.R1CSSolution)
 	wireValues := []fr.Element(solution.W)
 
@@ -106,21 +117,18 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 	// H (witness reduction / FFT part)
 	log.Debug().Msg("computing witness reduction")
 	var h []fr.Element
-	chHDone := make(chan struct{}, 1)
-	go func() {
+	func() {
 		h = computeH(solution.A, solution.B, solution.C, &pk.Domain)
 		solution.A = nil
 		solution.B = nil
 		solution.C = nil
-		chHDone <- struct{}{}
 	}()
 
 	// we need to copy and filter the wireValues for each multi exp
 	// as pk.G1.A, pk.G1.B and pk.G2.B may have (a significant) number of point at infinity
 	var wireValuesA, wireValuesB []fr.Element
-	chWireValuesA, chWireValuesB := make(chan struct{}, 1), make(chan struct{}, 1)
 
-	go func() {
+	func() {
 		wireValuesA = make([]fr.Element, len(wireValues)-int(pk.NbInfinityA))
 		for i, j := 0, 0; j < len(wireValuesA); i++ {
 			if pk.InfinityA[i] {
@@ -129,9 +137,8 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 			wireValuesA[j] = wireValues[i]
 			j++
 		}
-		close(chWireValuesA)
 	}()
-	go func() {
+	func() {
 		wireValuesB = make([]fr.Element, len(wireValues)-int(pk.NbInfinityB))
 		for i, j := 0, 0; j < len(wireValuesB); i++ {
 			if pk.InfinityB[i] {
@@ -140,7 +147,6 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 			wireValuesB[j] = wireValues[i]
 			j++
 		}
-		close(chWireValuesB)
 	}()
 
 	// sample random r and s
@@ -165,83 +171,49 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 
 	n := 1
 
-	chBs1Done := make(chan error, 1)
 	computeBS1 := func() {
-		<-chWireValuesB
 		if _, err := bs1.MultiExp(pk.G1.B, wireValuesB, ecc.MultiExpConfig{NbTasks: n }); err != nil {
-			chBs1Done <- err
-			close(chBs1Done)
-			return
+			panic(err)
 		}
 		bs1.AddMixed(&pk.G1.Beta)
 		bs1.AddMixed(&deltas[1])
-		chBs1Done <- nil
 	}
 
-	chArDone := make(chan error, 1)
 	computeAR1 := func() {
-		<-chWireValuesA
 		if _, err := ar.MultiExp(pk.G1.A, wireValuesA, ecc.MultiExpConfig{NbTasks: n }); err != nil {
-			chArDone <- err
-			close(chArDone)
-			return
+			panic(err)
 		}
 		ar.AddMixed(&pk.G1.Alpha)
 		ar.AddMixed(&deltas[0])
 		proof.Ar.FromJacobian(&ar)
-		chArDone <- nil
 	}
 
-	chKrsDone := make(chan error, 1)
 	computeKRS := func() {
 		// we could NOT split the Krs multiExp in 2, and just append pk.G1.K and pk.G1.Z
 		// however, having similar lengths for our tasks helps with parallelism
 
 		var krs, krs2, p1 curve.G1Jac
-		chKrs2Done := make(chan error, 1)
 		sizeH := int(pk.Domain.Cardinality - 1) // comes from the fact the deg(H)=(n-1)+(n-1)-n=n-2
-		go func() {
+		func() {
 			_, err := krs2.MultiExp(pk.G1.Z, h[:sizeH], ecc.MultiExpConfig{NbTasks: n })
-			chKrs2Done <- err
+			if err != nil {
+				panic(err)
+			}
 		}()
 
 		// filter the wire values if needed;
 		_wireValues := filter(wireValues, r1cs.CommitmentInfo.PrivateToPublic())
 
 		if _, err := krs.MultiExp(pk.G1.K, _wireValues[r1cs.GetNbPublicVariables():], ecc.MultiExpConfig{NbTasks: n }); err != nil {
-			chKrsDone <- err
-			return
+			panic(err)
 		}
 		krs.AddMixed(&deltas[2])
-		n := 3
-		for n != 0 {
-			select {
-			case err := <-chKrs2Done:
-				if err != nil {
-					chKrsDone <- err
-					return
-				}
 				krs.AddAssign(&krs2)
-			case err := <-chArDone:
-				if err != nil {
-					chKrsDone <- err
-					return
-				}
-				p1.ScalarMultiplication(&ar, &s)
+		p1.ScalarMultiplication(&ar, &s)
 				krs.AddAssign(&p1)
-			case err := <-chBs1Done:
-				if err != nil {
-					chKrsDone <- err
-					return
-				}
-				p1.ScalarMultiplication(&bs1, &r)
+		p1.ScalarMultiplication(&bs1, &r)
 				krs.AddAssign(&p1)
-			}
-			n--
-		}
-
 		proof.Krs.FromJacobian(&krs)
-		chKrsDone <- nil
 	}
 
 	computeBS2 := func() error {
@@ -249,11 +221,6 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 		var Bs, deltaS curve.G2Jac
 
 		nbTasks := n
-		if nbTasks <= 16 {
-			// if we don't have a lot of CPUs, this may artificially split the MSM
-			nbTasks *= 2
-		}
-		<-chWireValuesB
 		if _, err := Bs.MultiExp(pk.G2.B, wireValuesB, ecc.MultiExpConfig{NbTasks: nbTasks}); err != nil {
 			return err
 		}
@@ -268,22 +235,16 @@ func Prove(r1cs *cs.R1CS, pk *ProvingKey, fullWitness witness.Witness, opts ...b
 	}
 
 	// wait for FFT to end, as it uses all our CPUs
-	<-chHDone
 
 	// schedule our proof part computations
 	log.Debug().Msg("computing KRS")
-	go computeKRS()
+	computeKRS()
 	log.Debug().Msg("computing AR1")
-	go computeAR1()
+	 computeAR1()
 	log.Debug().Msg("computing BS1")
-	go computeBS1()
+	computeBS1()
 	log.Debug().Msg("computing BS2")
 	if err := computeBS2(); err != nil {
-		return nil, err
-	}
-
-	// wait for all parts of the proof to be computed.
-	if err := <-chKrsDone; err != nil {
 		return nil, err
 	}
 

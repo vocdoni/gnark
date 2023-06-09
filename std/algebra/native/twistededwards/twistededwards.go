@@ -27,8 +27,6 @@ import (
 	edbls24315 "github.com/consensys/gnark-crypto/ecc/bls24-315/twistededwards"
 	edbls24317 "github.com/consensys/gnark-crypto/ecc/bls24-317/twistededwards"
 	edbn254 "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards"
-	edbw6633 "github.com/consensys/gnark-crypto/ecc/bw6-633/twistededwards"
-	edbw6761 "github.com/consensys/gnark-crypto/ecc/bw6-761/twistededwards"
 	"github.com/consensys/gnark-crypto/ecc/twistededwards"
 	"github.com/consensys/gnark/frontend"
 )
@@ -214,33 +212,11 @@ func newEdBLS12_377() *CurveParams {
 }
 
 func newEdBW6_633() *CurveParams {
-
-	edcurve := edbw6633.GetEdwardsCurve()
-
-	r := newCurveParams()
-	edcurve.A.BigInt(r.A)
-	edcurve.D.BigInt(r.D)
-	edcurve.Cofactor.BigInt(r.Cofactor)
-	r.Order.Set(&edcurve.Order)
-	edcurve.Base.X.BigInt(r.Base[0])
-	edcurve.Base.Y.BigInt(r.Base[1])
-	return r
-
+	panic("not implemented")
 }
 
 func newEdBW6_761() *CurveParams {
-
-	edcurve := edbw6761.GetEdwardsCurve()
-
-	r := newCurveParams()
-	edcurve.A.BigInt(r.A)
-	edcurve.D.BigInt(r.D)
-	edcurve.Cofactor.BigInt(r.Cofactor)
-	r.Order.Set(&edcurve.Order)
-	edcurve.Base.X.BigInt(r.Base[0])
-	edcurve.Base.Y.BigInt(r.Base[1])
-	return r
-
+	panic("not implemented")
 }
 
 func newEdBLS24_317() *CurveParams {

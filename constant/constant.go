@@ -24,8 +24,6 @@ import (
 	bls24_315 "github.com/consensys/gnark-crypto/ecc/bls24-315/fr"
 	bls24_317 "github.com/consensys/gnark-crypto/ecc/bls24-317/fr"
 	bn254 "github.com/consensys/gnark-crypto/ecc/bn254/fr"
-	bw6_633 "github.com/consensys/gnark-crypto/ecc/bw6-633/fr"
-	bw6_761 "github.com/consensys/gnark-crypto/ecc/bw6-761/fr"
 	"github.com/consensys/gnark/frontend"
 	"math/big"
 )
@@ -35,13 +33,7 @@ func HashedBytes(api frontend.API, str []byte) (frontend.Variable, error) {
 	dst := []byte("string:")
 	var res big.Int
 
-	if field.Cmp(ecc.BW6_633.ScalarField()) == 0 {
-		if x, err := bw6_633.Hash(str, dst, 1); err == nil {
-			x[0].BigInt(&res)
-		} else {
-			return nil, err
-		}
-	} else if field.Cmp(ecc.BN254.ScalarField()) == 0 {
+ 	if field.Cmp(ecc.BN254.ScalarField()) == 0 {
 		if x, err := bn254.Hash(str, dst, 1); err == nil {
 			x[0].BigInt(&res)
 		} else {
@@ -55,12 +47,6 @@ func HashedBytes(api frontend.API, str []byte) (frontend.Variable, error) {
 		}
 	} else if field.Cmp(ecc.BLS12_381.ScalarField()) == 0 {
 		if x, err := bls12_381.Hash(str, dst, 1); err == nil {
-			x[0].BigInt(&res)
-		} else {
-			return nil, err
-		}
-	} else if field.Cmp(ecc.BW6_761.ScalarField()) == 0 {
-		if x, err := bw6_761.Hash(str, dst, 1); err == nil {
 			x[0].BigInt(&res)
 		} else {
 			return nil, err
